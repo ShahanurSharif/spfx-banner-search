@@ -62,7 +62,8 @@ npm install
 ```sh
 npm run get-pnp-modern-search
 ```
-This will download the latest `search-parts` source code from the official PnP Modern Search repository into `src/pnp-modern-search-parts`.
+This will download the latest `search-parts` and `search-extensibility` source code from the official PnP Modern Search repository into `src/pnp-modern-search-parts/` and `src/pnp-modern-search-extensibility/` respectively.
+Both directories are ignored in `.gitignore` and are not tracked by git for repository hygiene and best practices.
 
 ### 3. Build the Solution
 ```sh
@@ -85,9 +86,10 @@ git push
 ## Update Workflow
 - To update PnP Modern Search, run `npm run get-pnp-modern-search` and rebuild the solution.
 - Review release notes for breaking changes and test your integration.
+- If you accidentally commit these source directories, update `.gitignore`, remove them from git tracking with `git rm -r --cached src/pnp-modern-search-parts src/pnp-modern-search-extensibility`, then commit and push the cleanup.
 
 ## Best Practices
-- Keep third-party source code in `src/pnp-modern-search-parts` (not `node_modules`).
+- Keep third-party source code in `src/pnp-modern-search-parts` and `src/pnp-modern-search-extensibility` (not `node_modules`).
 - Document any customizations or integration patterns clearly.
 - Use modular components for easy future extension.
 
