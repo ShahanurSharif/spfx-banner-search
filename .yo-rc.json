@@ -1,0 +1,20 @@
+{
+  "@microsoft/generator-sharepoint": {
+    "componentType": "webpart",
+    "template": "react",
+    "componentName": "spfx-banner-search",
+    "plusBeta": false,
+    "isCreatingSolution": true,
+    "nodeVersion": "22.15.0",
+    "sdksVersions": {},
+    "version": "1.21.1",
+    "libraryName": "monarch-ai-search",
+    "libraryId": "a866d5ea-56de-401f-bfad-e7c86cb4aca3",
+    "environment": "spo",
+    "packageManager": "npm",
+    "solutionName": "monarch-ai-search",
+    "solutionShortDescription": "monarch-ai-search description",
+    "skipFeatureDeployment": true,
+    "isDomainIsolated": false
+  }
+}

@@ -1,0 +1,40 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/spfx-build/package-solution.schema.json",
+  "solution": {
+    "name": "monarch-ai-search-client-side-solution",
+    "id": "a866d5ea-56de-401f-bfad-e7c86cb4aca3",
+    "version": "1.0.0.0",
+    "includeClientSideAssets": true,
+    "skipFeatureDeployment": true,
+    "isDomainIsolated": false,
+    "developer": {
+      "name": "",
+      "websiteUrl": "",
+      "privacyUrl": "",
+      "termsOfUseUrl": "",
+      "mpnId": "Undefined-1.21.1"
+    },
+    "metadata": {
+      "shortDescription": {
+        "default": "monarch-ai-search description"
+      },
+      "longDescription": {
+        "default": "monarch-ai-search description"
+      },
+      "screenshotPaths": [],
+      "videoUrl": "",
+      "categories": []
+    },
+    "features": [
+      {
+        "title": "monarch-ai-search Feature",
+        "description": "The feature that activates elements of the monarch-ai-search solution.",
+        "id": "719e6f25-c530-4cd8-98ee-03669cfc0585",
+        "version": "1.0.0.0"
+      }
+    ]
+  },
+  "paths": {
+    "zippedPackage": "solution/monarch-ai-search.sppkg"
+  }
+}
