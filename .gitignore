@@ -32,3 +32,7 @@ obj
 
 # Styles Generated Code
 *.scss.ts
+
+# Ignore PnP Modern Search source directories
+src/pnp-modern-search-parts/
+src/pnp-modern-search-extensibility/

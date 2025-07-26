@@ -10,7 +10,7 @@
     "build": "gulp bundle",
     "clean": "gulp clean",
     "test": "gulp test",
-    "get-pnp-modern-search": "rm -rf src/pnp-modern-search-parts && git clone --depth 1 https://github.com/microsoft-search/pnp-modern-search.git temp-pnp && mv temp-pnp/search-parts src/pnp-modern-search-parts && rm -rf temp-pnp"
+    "get-pnp-modern-search": "rm -rf src/pnp-modern-search-parts src/pnp-modern-search-extensibility && git clone --depth 1 https://github.com/microsoft-search/pnp-modern-search.git temp-pnp && mv temp-pnp/search-parts src/pnp-modern-search-parts && mv temp-pnp/search-extensibility src/pnp-modern-search-extensibility && rm -rf temp-pnp"
   },
   "dependencies": {
     "tslib": "2.3.1",
