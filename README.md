@@ -58,12 +58,12 @@ This project is a SharePoint Framework (SPFx) web part using React, designed to 
 npm install
 ```
 
-### 2. Fetch/Update PnP Modern Search Source
+
+### 2. Install PnP Modern Search Extensibility Library
 ```sh
-npm run get-pnp-modern-search
+npm install @pnp/modern-search-extensibility
 ```
-This will download the latest `search-parts` and `search-extensibility` source code from the official PnP Modern Search repository into `src/pnp-modern-search-parts/` and `src/pnp-modern-search-extensibility/` respectively.
-Both directories are ignored in `.gitignore` and are not tracked by git for repository hygiene and best practices.
+Use the official npm package for extensibility features. No source code folders are required.
 
 ### 3. Build the Solution
 ```sh
@@ -71,10 +71,11 @@ gulp bundle
 gulp package-solution
 ```
 
-### 4. Integrate PnP Modern Search Components
-- Import and use components from `src/pnp-modern-search-parts` in your custom web part code.
-- Wire up connections between Search Box, Results, Filters, and Verticals as needed.
-- Extend or customize layouts and features using the extensibility model.
+
+### 4. Integrate PnP Modern Search Extensibility
+- Import and use extensibility interfaces, base classes, and helpers from `@pnp/modern-search-extensibility` in your custom web part code.
+- Build your own custom search box, results, filters, and layouts as needed.
+- Extend or customize features using the extensibility model provided by the library.
 
 ### 5. Push Changes to Remote
 ```sh
@@ -83,18 +84,20 @@ git commit -m "Update web part and search integration"
 git push
 ```
 
+
 ## Update Workflow
-- To update PnP Modern Search, run `npm run get-pnp-modern-search` and rebuild the solution.
+- To update PnP Modern Search Extensibility, run `npm update @pnp/modern-search-extensibility` and rebuild the solution.
 - Review release notes for breaking changes and test your integration.
-- If you accidentally commit these source directories, update `.gitignore`, remove them from git tracking with `git rm -r --cached src/pnp-modern-search-parts src/pnp-modern-search-extensibility`, then commit and push the cleanup.
+
 
 ## Best Practices
-- Keep third-party source code in `src/pnp-modern-search-parts` and `src/pnp-modern-search-extensibility` (not `node_modules`).
+- Use the official npm package for extensibility features.
 - Document any customizations or integration patterns clearly.
 - Use modular components for easy future extension.
 
+
 ## For Models and Agents
-- Always use the provided scripts for setup and updates.
+- Always use the official npm package for setup and updates.
 - Follow the integration pattern in this README for consistent development.
 - Do not modify code in `node_modules`.
 - Communicate any changes or issues in the project documentation and commit messages.
