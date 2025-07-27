@@ -1,34 +1,322 @@
 @import '~@fluentui/react/dist/sass/References.scss';
 
-.spfxBannerSearch {
+// CSS Variables for dynamic theming
+:global(.CanvasSection.CanvasSection--fullBleed) .heroBanner {
+  margin-left: calc(-50vw + 50%);
+  margin-right: calc(-50vw + 50%);
+  max-width: 100vw;
+  width: 100vw;
+}
+
+.heroBanner {
+  position: relative;
+  min-height: var(--min-height, 450px);
+  background: linear-gradient(135deg, var(--gradient-start, #0078d4), var(--gradient-end, #106ebe));
+  display: flex;
+  align-items: center;
+  justify-content: center;
   overflow: hidden;
-  padding: 1em;
-  color: "[theme:bodyText, default: #323130]";
-  color: var(--bodyText);
+  color: var(--body-text, #ffffff);
+  padding: 2rem;
+
   &.teams {
+    font-family: $ms-font-family-fallbacks;
+  }
+
+  // Responsive design
+  @media (max-width: 768px) {
+    min-height: calc(var(--min-height, 450px) * 0.8);
+    padding: 1rem;
+  }
+}
+
+// Animation layer for floating circles
+.animationLayer {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.floatingCircle {
+  position: absolute;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.1);
+  animation: float linear infinite;
+  
+  &.circle1 {
+    width: 60px;
+    height: 60px;
+    left: 10%;
+    top: 20%;
+  }
+  
+  &.circle2 {
+    width: 80px;
+    height: 80px;
+    left: 80%;
+    top: 10%;
+  }
+  
+  &.circle3 {
+    width: 40px;
+    height: 40px;
+    left: 70%;
+    top: 80%;
+  }
+  
+  &.circle4 {
+    width: 100px;
+    height: 100px;
+    left: 20%;
+    top: 70%;
+  }
+  
+  &.circle5 {
+    width: 50px;
+    height: 50px;
+    left: 90%;
+    top: 50%;
+  }
+  
+  &.circle6 {
+    width: 70px;
+    height: 70px;
+    left: 5%;
+    top: 50%;
+  }
+}
+
+@keyframes float {
+  0% {
+    transform: translateY(0px) rotate(0deg);
+    opacity: 0.7;
+  }
+  50% {
+    transform: translateY(-20px) rotate(180deg);
+    opacity: 0.3;
+  }
+  100% {
+    transform: translateY(0px) rotate(360deg);
+    opacity: 0.7;
+  }
+}
+
+// Hero content styling
+.heroContent {
+  position: relative;
+  z-index: 2;
+  text-align: center;
+  max-width: 800px;
+  width: 100%;
+  margin: 0 auto;
+}
+
+.searchWrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.5rem;
+
+  @media (max-width: 768px) {
+    gap: 1rem;
+  }
+}
+
+.heroTitle {
+  font-size: 3rem;
+  font-weight: 600;
+  margin: 0;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+  line-height: 1.2;
+
+  @media (max-width: 768px) {
+    font-size: 2rem;
+  }
+
+  @media (max-width: 480px) {
+    font-size: 1.5rem;
+  }
+}
+
+.heroSubtitle {
+  font-size: 1.25rem;
+  margin: 0;
+  opacity: 0.9;
+  font-weight: 300;
+
+  @media (max-width: 768px) {
+    font-size: 1rem;
+  }
+}
+
+// Search container styling
+.searchContainer {
+  position: relative;
+  width: 100%;
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.heroSearchBox {
+  width: 100%;
+  height: 56px;
+  border-radius: 28px;
+  border: none;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+  font-size: 1.1rem;
+  padding: 0 24px 0 56px;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
+  transition: all 0.3s ease;
+
+  &:focus {
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4);
+    background: rgba(255, 255, 255, 1);
+    transform: translateY(-2px);
+  }
+
+  &:hover {
+    box-shadow: 0 10px 36px rgba(0, 0, 0, 0.35);
+    transform: translateY(-1px);
+  }
+
+  // Search icon styling
+  :global(.ms-SearchBox-iconContainer) {
+    left: 20px;
+    color: var(--gradient-start, #0078d4);
+  }
+
+  // Input field styling
+  :global(.ms-SearchBox-field) {
+    border: none;
+    background: transparent;
+    color: #323130;
+    font-size: 1.1rem;
+    padding-left: 16px;
+
+    &::placeholder {
+      color: #605e5c;
+      font-style: italic;
+    }
+  }
+
+  // Clear button styling
+  :global(.ms-SearchBox-clearButton) {
+    color: #605e5c;
+    
+    &:hover {
+      color: #323130;
+    }
+  }
+
+  @media (max-width: 768px) {
+    height: 48px;
+    font-size: 1rem;
+    padding: 0 20px 0 48px;
+    border-radius: 24px;
+
+    :global(.ms-SearchBox-iconContainer) {
+      left: 16px;
+    }
+  }
+}
+
+.suggestionsHint {
+  margin-top: 0.5rem;
+  font-size: 0.875rem;
+  opacity: 0.8;
+  font-style: italic;
+}
+
+// Accessibility
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+// Teams-specific adjustments
+.teams {
+  .heroSearchBox {
     font-family: $ms-font-family-fallbacks;
   }
 }
 
-.welcome {
-  text-align: center;
-}
-
-.welcomeImage {
-  width: 100%;
-  max-width: 420px;
-}
-
-.links {
-  a {
-    text-decoration: none;
-    color: "[theme:link, default:#03787c]";
-    color: var(--link); // note: CSS Custom Properties support is limited to modern browsers only
-
-    &:hover {
-      text-decoration: underline;
-      color: "[theme:linkHovered, default: #014446]";
-      color: var(--linkHovered); // note: CSS Custom Properties support is limited to modern browsers only
+// Dark theme support
+@media (prefers-color-scheme: dark) {
+  .heroBanner {
+    color: #ffffff;
+  }
+  
+  .heroSearchBox {
+    background: rgba(45, 45, 45, 0.95);
+    color: #ffffff;
+    
+    :global(.ms-SearchBox-field) {
+      color: #ffffff;
+      
+      &::placeholder {
+        color: #c8c6c4;
+      }
     }
+    
+    :global(.ms-SearchBox-clearButton) {
+      color: #c8c6c4;
+      
+      &:hover {
+        color: #ffffff;
+      }
+    }
+  }
+}
+
+// High contrast support
+@media (prefers-contrast: high) {
+  .heroBanner {
+    background: #000000;
+    color: #ffffff;
+    border: 2px solid #ffffff;
+  }
+  
+  .heroSearchBox {
+    background: #ffffff;
+    color: #000000;
+    border: 2px solid #000000;
+  }
+  
+  .floatingCircle {
+    display: none; // Hide decorative elements in high contrast
+  }
+}
+
+// Print styles
+@media print {
+  .heroBanner {
+    background: #ffffff !important;
+    color: #000000 !important;
+    min-height: auto !important;
+    padding: 1rem !important;
+  }
+  
+  .animationLayer {
+    display: none;
+  }
+  
+  .heroSearchBox {
+    border: 2px solid #000000 !important;
+    background: #ffffff !important;
+    color: #000000 !important;
+    box-shadow: none !important;
   }
 }

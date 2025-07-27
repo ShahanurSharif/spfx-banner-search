@@ -14,15 +14,22 @@
   "requiresCustomScript": false,
   "supportedHosts": ["SharePointWebPart", "TeamsPersonalApp", "TeamsTab", "SharePointFullPage"],
   "supportsThemeVariants": true,
+  "supportsFullBleed": true,
 
   "preconfiguredEntries": [{
     "groupId": "5c03119e-3074-46fd-976b-c60198311f70", // Advanced
     "group": { "default": "Advanced" },
-    "title": { "default": "spfx-banner-search" },
-    "description": { "default": "spfx-banner-search description" },
-    "officeFabricIconFontName": "Page",
+    "title": { "default": "AI Search Hero Banner" },
+    "description": { "default": "Full-bleed hero banner with centralized search and configurable gradients" },
+    "officeFabricIconFontName": "SearchAndApps",
     "properties": {
-      "description": "spfx-banner-search"
+      "gradientStartColor": "#0078d4",
+      "gradientEndColor": "#106ebe",
+      "showCircleAnimation": true,
+      "minHeight": 450,
+      "searchBoxPlaceholder": "Search everything...",
+      "queryTemplate": "*",
+      "enableSuggestions": true
     }
   }]
 }
