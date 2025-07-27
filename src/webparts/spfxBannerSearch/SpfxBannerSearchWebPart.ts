@@ -28,6 +28,7 @@ export interface ISpfxBannerSearchWebPartProps {
   queryTemplate: string;
   resultsWebPartId: string;
   enableSuggestions: boolean;
+  enableAISearch: boolean;
 }
 
 export default class SpfxBannerSearchWebPart extends BaseClientSideWebPart<ISpfxBannerSearchWebPartProps> {
@@ -43,10 +44,11 @@ export default class SpfxBannerSearchWebPart extends BaseClientSideWebPart<ISpfx
         gradientStartColor: this.properties.gradientStartColor || '#0078d4',
         gradientEndColor: this.properties.gradientEndColor || '#106ebe',
         showCircleAnimation: this.properties.showCircleAnimation !== false,
-        minHeight: this.properties.minHeight || 450,
+        minHeight: this.properties.minHeight || 500,
         searchBoxPlaceholder: this.properties.searchBoxPlaceholder || 'Search everything...',
         queryTemplate: this.properties.queryTemplate || '*',
         enableSuggestions: this.properties.enableSuggestions !== false,
+        enableAISearch: this.properties.enableAISearch || false,
         isDarkTheme: this._isDarkTheme,
         environmentMessage: this._environmentMessage,
         hasTeamsContext: !!this.context.sdks.microsoftTeams,
@@ -203,7 +205,7 @@ export default class SpfxBannerSearchWebPart extends BaseClientSideWebPart<ISpfx
                 }),
                 PropertyPaneSlider('minHeight', {
                   label: 'Banner Minimum Height (px)',
-                  min: 300,
+                  min: 500,
                   max: 800,
                   step: 50,
                   showValue: true,
@@ -212,6 +214,10 @@ export default class SpfxBannerSearchWebPart extends BaseClientSideWebPart<ISpfx
                 PropertyPaneTextField('searchBoxPlaceholder', {
                   label: 'Search Box Placeholder Text',
                   value: this.properties.searchBoxPlaceholder
+                }),
+                PropertyPaneToggle('enableAISearch', {
+                  label: 'Enable AI Search',
+                  checked: this.properties.enableAISearch
                 })
               ]
             }

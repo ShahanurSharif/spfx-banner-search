@@ -33,6 +33,7 @@ import styles from './SpfxBannerSearch.module.scss';
 import type { ISpfxBannerSearchProps } from './ISpfxBannerSearchProps';
 import { SearchBox } from '@fluentui/react/lib/SearchBox';
 import { ThemeProvider } from '@fluentui/react/lib/Theme';
+import AISearch from './AISearch';
 
 // Animation component for floating circles
 const AnimatedCircles: React.FC<{ show: boolean }> = React.memo(({ show }) => {
@@ -108,6 +109,7 @@ const SpfxBannerSearch: React.FC<ISpfxBannerSearchProps> = (props) => {
     minHeight,
     searchBoxPlaceholder,
     enableSuggestions,
+    enableAISearch,
     isDarkTheme,
     semanticColors,
     onSearchQuery,
@@ -161,16 +163,20 @@ const SpfxBannerSearch: React.FC<ISpfxBannerSearchProps> = (props) => {
             <h1 className={styles.heroTitle}>
               Find What You Need
             </h1>
-            <p className={styles.heroSubtitle}>
-              Search across all content and resources
-            </p>
             
-            <HeroSearchBox
-              placeholder={searchBoxPlaceholder}
-              onSearch={handleSearch}
-              enableSuggestions={enableSuggestions}
-              semanticColors={semanticColors}
-            />
+            {enableAISearch ? (
+              <AISearch
+                placeholder={searchBoxPlaceholder || 'Ask me anything...'}
+                onSearchQuery={handleSearch}
+              />
+            ) : (
+              <HeroSearchBox
+                placeholder={searchBoxPlaceholder}
+                onSearch={handleSearch}
+                enableSuggestions={enableSuggestions}
+                semanticColors={semanticColors}
+              />
+            )}
           </div>
         </div>
         
