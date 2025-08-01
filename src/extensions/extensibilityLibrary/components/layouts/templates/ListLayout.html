@@ -1,0 +1,381 @@
+<!-- 
+  Custom List Layout Template
+  
+  This Handlebars template renders search results in a clean list format
+  Supports responsive design, metadata display, and accessibility features
+-->
+
+<div class="custom-list-layout {{#if compactMode}}compact{{/if}} {{#if enableHover}}hover-effects{{/if}}">
+  
+  <!-- Results Header -->
+  {{#if items}}
+  <div class="results-header">
+    <div class="results-count">
+      <span class="count-text">{{totalRows}} results found</span>
+      {{#if searchQuery}}
+      <span class="query-text">for "<strong>{{searchQuery}}</strong>"</span>
+      {{/if}}
+    </div>
+    
+    {{#if hasGraphResults}}
+    <div class="result-sources">
+      <span class="source-info">
+        <i class="ms-Icon ms-Icon--SharePointLogo" aria-hidden="true"></i>
+        SharePoint: {{resultSources.sharePoint}}
+      </span>
+      <span class="source-info">
+        <i class="ms-Icon ms-Icon--MSNVideos" aria-hidden="true"></i>
+        Microsoft 365: {{resultSources.graph}}
+      </span>
+    </div>
+    {{/if}}
+  </div>
+  {{/if}}
+
+  <!-- Results List -->
+  <div class="results-list" role="list">
+    {{#each items}}
+    <article class="result-item {{#if IsFromGraph}}from-graph{{/if}}" role="listitem">
+      
+      <!-- Thumbnail Section -->
+      {{#if ../showThumbnails}}
+      <div class="result-thumbnail">
+        {{#if IsFromGraph}}
+          <i class="ms-Icon ms-Icon--{{#switch GraphEntityType}}
+            {{#case 'message'}}Mail{{/case}}
+            {{#case 'event'}}Calendar{{/case}}
+            {{#case 'driveitem'}}{{#if file}}Document{{else}}Folder{{/if}}{{/case}}
+            {{#default}}GenericScan{{/default}}
+          {{/switch}}" aria-hidden="true"></i>
+        {{else}}
+          {{#if FileExtension}}
+            <i class="ms-Icon ms-Icon--{{FileExtension}}" aria-hidden="true"></i>
+          {{else}}
+            <i class="ms-Icon ms-Icon--Document" aria-hidden="true"></i>
+          {{/if}}
+        {{/if}}
+      </div>
+      {{/if}}
+
+      <!-- Content Section -->
+      <div class="result-content">
+        
+        <!-- Title and Link -->
+        <h3 class="result-title">
+          <a href="{{Path}}" target="_blank" rel="noopener noreferrer" 
+             title="{{Title}}" class="result-link">
+            {{{highlight Title ../searchQuery}}}
+          </a>
+          {{#if IsFromGraph}}
+            <span class="source-badge graph-badge" title="From Microsoft 365">
+              <i class="ms-Icon ms-Icon--Cloud" aria-hidden="true"></i>
+            </span>
+          {{/if}}
+        </h3>
+
+        <!-- Summary -->
+        {{#ifExists Summary}}
+        <div class="result-summary">
+          <p>{{{highlight (truncate Summary 200) ../searchQuery}}}</p>
+        </div>
+        {{/ifExists}}
+
+        <!-- Metadata -->
+        {{#if ../showMetadata}}
+        <div class="result-metadata">
+          
+          {{#ifExists Author}}
+          <span class="metadata-item author">
+            <i class="ms-Icon ms-Icon--Person" aria-hidden="true"></i>
+            <span class="metadata-label">Author:</span>
+            <span class="metadata-value">{{Author}}</span>
+          </span>
+          {{/ifExists}}
+
+          {{#ifExists Modified}}
+          <span class="metadata-item date">
+            <i class="ms-Icon ms-Icon--DateTime" aria-hidden="true"></i>
+            <span class="metadata-label">Modified:</span>
+            <span class="metadata-value">{{formatDate Modified}}</span>
+          </span>
+          {{/ifExists}}
+
+          {{#ifExists FileType}}
+          <span class="metadata-item filetype">
+            <i class="ms-Icon ms-Icon--FileCode" aria-hidden="true"></i>
+            <span class="metadata-label">Type:</span>
+            <span class="metadata-value">{{FileType}}</span>
+          </span>
+          {{/ifExists}}
+
+          {{#if IsFromGraph}}
+          <span class="metadata-item source">
+            <i class="ms-Icon ms-Icon--Cloud" aria-hidden="true"></i>
+            <span class="metadata-label">Source:</span>
+            <span class="metadata-value">Microsoft 365</span>
+          </span>
+          {{/if}}
+
+        </div>
+        {{/if}}
+
+      </div>
+
+      <!-- Actions Section -->
+      <div class="result-actions">
+        <button type="button" class="action-button" title="Preview" 
+                onclick="window.open('{{Path}}', '_blank')">
+          <i class="ms-Icon ms-Icon--View" aria-hidden="true"></i>
+        </button>
+      </div>
+
+    </article>
+    {{/each}}
+  </div>
+
+  <!-- Empty State -->
+  {{#unless items}}
+  <div class="empty-state">
+    <div class="empty-state-icon">
+      <i class="ms-Icon ms-Icon--SearchIssue" aria-hidden="true"></i>
+    </div>
+    <h3 class="empty-state-title">No results found</h3>
+    <p class="empty-state-message">
+      {{#if searchQuery}}
+        No results were found for "<strong>{{searchQuery}}</strong>". 
+        Try different keywords or check your spelling.
+      {{else}}
+        No content available to display.
+      {{/if}}
+    </p>
+  </div>
+  {{/unless}}
+
+</div>
+
+<!-- List Layout Styles -->
+<style>
+.custom-list-layout {
+  font-family: "Segoe UI", -apple-system, BlinkMacSystemFont, "Roboto", "Helvetica Neue", sans-serif;
+  line-height: 1.6;
+}
+
+.results-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid #edebe9;
+}
+
+.results-count .count-text {
+  font-weight: 600;
+  color: #323130;
+}
+
+.results-count .query-text {
+  color: #605e5c;
+  margin-left: 5px;
+}
+
+.result-sources {
+  display: flex;
+  gap: 15px;
+}
+
+.source-info {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 12px;
+  color: #605e5c;
+}
+
+.results-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.custom-list-layout.compact .results-list {
+  gap: 8px;
+}
+
+.result-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 16px;
+  background: #ffffff;
+  border: 1px solid #edebe9;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+}
+
+.custom-list-layout.compact .result-item {
+  padding: 12px;
+}
+
+.custom-list-layout.hover-effects .result-item:hover {
+  border-color: #0078d4;
+  box-shadow: 0 2px 8px rgba(0, 120, 212, 0.1);
+  transform: translateY(-1px);
+}
+
+.result-item.from-graph {
+  border-left: 3px solid #0078d4;
+}
+
+.result-thumbnail {
+  flex-shrink: 0;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #f3f2f1;
+  border-radius: 2px;
+}
+
+.result-thumbnail .ms-Icon {
+  font-size: 18px;
+  color: #605e5c;
+}
+
+.result-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.result-title {
+  margin: 0 0 8px 0;
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 1.3;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.result-link {
+  color: #0078d4;
+  text-decoration: none;
+  word-break: break-word;
+}
+
+.result-link:hover {
+  text-decoration: underline;
+}
+
+.source-badge {
+  padding: 2px 6px;
+  border-radius: 10px;
+  font-size: 10px;
+  font-weight: 500;
+  background: #0078d4;
+  color: white;
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.result-summary {
+  margin-bottom: 8px;
+}
+
+.result-summary p {
+  margin: 0;
+  color: #605e5c;
+  font-size: 14px;
+  line-height: 1.4;
+}
+
+.result-metadata {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.metadata-item {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  color: #605e5c;
+}
+
+.metadata-label {
+  font-weight: 500;
+}
+
+.result-actions {
+  flex-shrink: 0;
+}
+
+.action-button {
+  background: none;
+  border: 1px solid #d2d0ce;
+  border-radius: 2px;
+  padding: 6px;
+  cursor: pointer;
+  color: #605e5c;
+  transition: all 0.2s ease;
+}
+
+.action-button:hover {
+  background: #f3f2f1;
+  border-color: #0078d4;
+  color: #0078d4;
+}
+
+.empty-state {
+  text-align: center;
+  padding: 40px 20px;
+  color: #605e5c;
+}
+
+.empty-state-icon .ms-Icon {
+  font-size: 48px;
+  color: #a19f9d;
+  margin-bottom: 16px;
+}
+
+.empty-state-title {
+  margin: 0 0 8px 0;
+  font-size: 20px;
+  font-weight: 600;
+  color: #323130;
+}
+
+.empty-state-message {
+  margin: 0;
+  font-size: 14px;
+  max-width: 400px;
+  margin: 0 auto;
+}
+
+mark {
+  background: #fff100;
+  padding: 0 2px;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .results-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+  
+  .result-item {
+    flex-direction: column;
+    gap: 8px;
+  }
+  
+  .result-metadata {
+    flex-direction: column;
+    gap: 8px;
+  }
+}
+</style>

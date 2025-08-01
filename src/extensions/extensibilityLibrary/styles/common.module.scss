@@ -1,0 +1,484 @@
+/**
+ * Common Styles for Extensibility Library Components
+ * 
+ * Shared styles and theme definitions for the extensibility library
+ * These styles follow Fluent UI design principles and SharePoint design language
+ */
+
+/* CSS Variables for Theme Support */
+:root {
+  /* Primary Colors */
+  --ext-primary-color: #0078d4;
+  --ext-primary-hover: #106ebe;
+  --ext-primary-pressed: #005a9e;
+  --ext-primary-light: rgba(0, 120, 212, 0.1);
+  
+  /* Neutral Colors */
+  --ext-neutral-dark: #323130;
+  --ext-neutral-primary: #605e5c;
+  --ext-neutral-secondary: #8a8886;
+  --ext-neutral-tertiary: #a19f9d;
+  --ext-neutral-quaternary: #c8c6c4;
+  --ext-neutral-light: #edebe9;
+  --ext-neutral-lighter: #f3f2f1;
+  --ext-neutral-lightest: #faf9f8;
+  
+  /* Semantic Colors */
+  --ext-success-color: #107c10;
+  --ext-warning-color: #ff8c00;
+  --ext-error-color: #d13438;
+  --ext-info-color: #0078d4;
+  
+  /* Background Colors */
+  --ext-background-primary: #ffffff;
+  --ext-background-secondary: #f3f2f1;
+  --ext-background-hover: #f3f2f1;
+  --ext-background-pressed: #edebe9;
+  
+  /* Typography */
+  --ext-font-family: "Segoe UI", -apple-system, BlinkMacSystemFont, "Roboto", "Helvetica Neue", sans-serif;
+  --ext-font-size-small: 12px;
+  --ext-font-size-medium: 14px;
+  --ext-font-size-large: 16px;
+  --ext-font-size-xlarge: 18px;
+  --ext-font-size-xxlarge: 24px;
+  
+  /* Spacing */
+  --ext-spacing-xs: 4px;
+  --ext-spacing-sm: 8px;
+  --ext-spacing-md: 12px;
+  --ext-spacing-lg: 16px;
+  --ext-spacing-xl: 24px;
+  --ext-spacing-xxl: 32px;
+  
+  /* Border Radius */
+  --ext-border-radius-sm: 2px;
+  --ext-border-radius-md: 4px;
+  --ext-border-radius-lg: 8px;
+  --ext-border-radius-xl: 12px;
+  
+  /* Shadows */
+  --ext-shadow-light: 0 1px 3px rgba(0, 0, 0, 0.1);
+  --ext-shadow-medium: 0 2px 8px rgba(0, 0, 0, 0.15);
+  --ext-shadow-heavy: 0 4px 16px rgba(0, 0, 0, 0.2);
+  
+  /* Transitions */
+  --ext-transition-fast: 0.1s ease;
+  --ext-transition-normal: 0.2s ease;
+  --ext-transition-slow: 0.3s ease;
+}
+
+/* Dark Theme Variables */
+[data-theme="dark"] {
+  --ext-primary-color: #4fc3f7;
+  --ext-primary-hover: #29b6f6;
+  --ext-primary-pressed: #0288d1;
+  
+  --ext-neutral-dark: #ffffff;
+  --ext-neutral-primary: #f3f2f1;
+  --ext-neutral-secondary: #d2d0ce;
+  --ext-neutral-tertiary: #b3b0ad;
+  --ext-neutral-quaternary: #8a8886;
+  --ext-neutral-light: #605e5c;
+  --ext-neutral-lighter: #484644;
+  --ext-neutral-lightest: #323130;
+  
+  --ext-background-primary: #1f1f1f;
+  --ext-background-secondary: #2d2d2d;
+  --ext-background-hover: #3d3d3d;
+  --ext-background-pressed: #484644;
+}
+
+/* Base Component Styles */
+.extensibility-component {
+  font-family: var(--ext-font-family);
+  color: var(--ext-neutral-dark);
+  background: var(--ext-background-primary);
+  
+  *, *::before, *::after {
+    box-sizing: border-box;
+  }
+}
+
+/* Typography Classes */
+.ext-text-small {
+  font-size: var(--ext-font-size-small);
+}
+
+.ext-text-medium {
+  font-size: var(--ext-font-size-medium);
+}
+
+.ext-text-large {
+  font-size: var(--ext-font-size-large);
+}
+
+.ext-text-xlarge {
+  font-size: var(--ext-font-size-xlarge);
+}
+
+.ext-text-xxlarge {
+  font-size: var(--ext-font-size-xxlarge);
+}
+
+.ext-font-weight-regular {
+  font-weight: 400;
+}
+
+.ext-font-weight-medium {
+  font-weight: 500;
+}
+
+.ext-font-weight-semibold {
+  font-weight: 600;
+}
+
+.ext-font-weight-bold {
+  font-weight: 700;
+}
+
+/* Color Classes */
+.ext-color-primary {
+  color: var(--ext-primary-color);
+}
+
+.ext-color-neutral-dark {
+  color: var(--ext-neutral-dark);
+}
+
+.ext-color-neutral-primary {
+  color: var(--ext-neutral-primary);
+}
+
+.ext-color-neutral-secondary {
+  color: var(--ext-neutral-secondary);
+}
+
+.ext-color-success {
+  color: var(--ext-success-color);
+}
+
+.ext-color-warning {
+  color: var(--ext-warning-color);
+}
+
+.ext-color-error {
+  color: var(--ext-error-color);
+}
+
+/* Button Styles */
+.ext-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--ext-spacing-sm);
+  padding: var(--ext-spacing-sm) var(--ext-spacing-lg);
+  border: 1px solid transparent;
+  border-radius: var(--ext-border-radius-md);
+  font-family: var(--ext-font-family);
+  font-size: var(--ext-font-size-medium);
+  font-weight: 500;
+  text-decoration: none;
+  cursor: pointer;
+  transition: all var(--ext-transition-normal);
+  outline: none;
+  
+  &:focus-visible {
+    outline: 2px solid var(--ext-primary-color);
+    outline-offset: 2px;
+  }
+  
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+}
+
+.ext-button-primary {
+  background: var(--ext-primary-color);
+  color: white;
+  border-color: var(--ext-primary-color);
+  
+  &:hover:not(:disabled) {
+    background: var(--ext-primary-hover);
+    border-color: var(--ext-primary-hover);
+  }
+  
+  &:active:not(:disabled) {
+    background: var(--ext-primary-pressed);
+    border-color: var(--ext-primary-pressed);
+  }
+}
+
+.ext-button-secondary {
+  background: transparent;
+  color: var(--ext-primary-color);
+  border-color: var(--ext-primary-color);
+  
+  &:hover:not(:disabled) {
+    background: var(--ext-primary-light);
+  }
+  
+  &:active:not(:disabled) {
+    background: var(--ext-primary-color);
+    color: white;
+  }
+}
+
+.ext-button-ghost {
+  background: transparent;
+  color: var(--ext-neutral-dark);
+  border-color: var(--ext-neutral-light);
+  
+  &:hover:not(:disabled) {
+    background: var(--ext-background-hover);
+    border-color: var(--ext-neutral-secondary);
+  }
+  
+  &:active:not(:disabled) {
+    background: var(--ext-background-pressed);
+  }
+}
+
+/* Input Styles */
+.ext-input {
+  width: 100%;
+  padding: var(--ext-spacing-sm) var(--ext-spacing-md);
+  border: 1px solid var(--ext-neutral-light);
+  border-radius: var(--ext-border-radius-md);
+  font-family: var(--ext-font-family);
+  font-size: var(--ext-font-size-medium);
+  color: var(--ext-neutral-dark);
+  background: var(--ext-background-primary);
+  transition: border-color var(--ext-transition-normal);
+  
+  &:focus {
+    outline: none;
+    border-color: var(--ext-primary-color);
+    box-shadow: 0 0 0 1px var(--ext-primary-color);
+  }
+  
+  &::placeholder {
+    color: var(--ext-neutral-secondary);
+  }
+  
+  &:disabled {
+    background: var(--ext-background-secondary);
+    color: var(--ext-neutral-secondary);
+    cursor: not-allowed;
+  }
+}
+
+/* Card Styles */
+.ext-card {
+  background: var(--ext-background-primary);
+  border: 1px solid var(--ext-neutral-light);
+  border-radius: var(--ext-border-radius-lg);
+  padding: var(--ext-spacing-lg);
+  box-shadow: var(--ext-shadow-light);
+  transition: box-shadow var(--ext-transition-normal);
+  
+  &:hover {
+    box-shadow: var(--ext-shadow-medium);
+  }
+}
+
+/* Badge Styles */
+.ext-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: var(--ext-spacing-xs) var(--ext-spacing-sm);
+  border-radius: var(--ext-border-radius-xl);
+  font-size: var(--ext-font-size-small);
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.ext-badge-primary {
+  background: var(--ext-primary-color);
+  color: white;
+}
+
+.ext-badge-secondary {
+  background: var(--ext-neutral-light);
+  color: var(--ext-neutral-dark);
+}
+
+.ext-badge-success {
+  background: var(--ext-success-color);
+  color: white;
+}
+
+.ext-badge-warning {
+  background: var(--ext-warning-color);
+  color: white;
+}
+
+.ext-badge-error {
+  background: var(--ext-error-color);
+  color: white;
+}
+
+/* Loading Spinner */
+.ext-spinner {
+  display: inline-block;
+  width: 20px;
+  height: 20px;
+  border: 2px solid var(--ext-neutral-light);
+  border-top-color: var(--ext-primary-color);
+  border-radius: 50%;
+  animation: ext-spin 1s linear infinite;
+}
+
+@keyframes ext-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Utility Classes */
+.ext-flex {
+  display: flex;
+}
+
+.ext-flex-column {
+  flex-direction: column;
+}
+
+.ext-flex-wrap {
+  flex-wrap: wrap;
+}
+
+.ext-justify-center {
+  justify-content: center;
+}
+
+.ext-justify-between {
+  justify-content: space-between;
+}
+
+.ext-justify-end {
+  justify-content: flex-end;
+}
+
+.ext-align-center {
+  align-items: center;
+}
+
+.ext-align-start {
+  align-items: flex-start;
+}
+
+.ext-align-end {
+  align-items: flex-end;
+}
+
+.ext-gap-xs {
+  gap: var(--ext-spacing-xs);
+}
+
+.ext-gap-sm {
+  gap: var(--ext-spacing-sm);
+}
+
+.ext-gap-md {
+  gap: var(--ext-spacing-md);
+}
+
+.ext-gap-lg {
+  gap: var(--ext-spacing-lg);
+}
+
+.ext-gap-xl {
+  gap: var(--ext-spacing-xl);
+}
+
+/* Margin and Padding Utilities */
+.ext-m-0 { margin: 0; }
+.ext-m-xs { margin: var(--ext-spacing-xs); }
+.ext-m-sm { margin: var(--ext-spacing-sm); }
+.ext-m-md { margin: var(--ext-spacing-md); }
+.ext-m-lg { margin: var(--ext-spacing-lg); }
+.ext-m-xl { margin: var(--ext-spacing-xl); }
+
+.ext-p-0 { padding: 0; }
+.ext-p-xs { padding: var(--ext-spacing-xs); }
+.ext-p-sm { padding: var(--ext-spacing-sm); }
+.ext-p-md { padding: var(--ext-spacing-md); }
+.ext-p-lg { padding: var(--ext-spacing-lg); }
+.ext-p-xl { padding: var(--ext-spacing-xl); }
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .ext-responsive-hide-mobile {
+    display: none !important;
+  }
+  
+  .ext-responsive-stack-mobile {
+    flex-direction: column !important;
+  }
+  
+  .ext-button {
+    padding: var(--ext-spacing-md) var(--ext-spacing-lg);
+    font-size: var(--ext-font-size-medium);
+  }
+}
+
+@media (max-width: 480px) {
+  .ext-responsive-hide-small {
+    display: none !important;
+  }
+  
+  .ext-card {
+    padding: var(--ext-spacing-md);
+  }
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  .ext-button-primary {
+    border: 2px solid;
+  }
+  
+  .ext-input {
+    border-width: 2px;
+  }
+  
+  .ext-card {
+    border-width: 2px;
+  }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+  
+  .ext-spinner {
+    animation: none !important;
+  }
+}
+
+/* Focus management for accessibility */
+.ext-focus-trap {
+  &:focus {
+    outline: 2px solid var(--ext-primary-color);
+    outline-offset: 2px;
+  }
+}
+
+/* Screen reader only content */
+.ext-sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}

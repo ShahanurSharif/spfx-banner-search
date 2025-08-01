@@ -29,6 +29,10 @@ export interface ISpfxBannerSearchWebPartProps {
   resultsWebPartId: string;
   enableSuggestions: boolean;
   enableAISearch: boolean;
+  
+  // Redirect configuration
+  redirectToSearchPage: boolean;
+  searchPageUrl: string;
 }
 
 export default class SpfxBannerSearchWebPart extends BaseClientSideWebPart<ISpfxBannerSearchWebPartProps> {
@@ -67,7 +71,15 @@ export default class SpfxBannerSearchWebPart extends BaseClientSideWebPart<ISpfx
    */
   private _onSearchQuery(queryText: string): void {
     this._currentSearchQuery = queryText;
-    // Publish the search query as dynamic data for other web parts to consume
+    
+    // Option 1: Redirect to search results page
+    if (this.properties.redirectToSearchPage && this.properties.searchPageUrl) {
+      const searchUrl = `${this.properties.searchPageUrl}?q=${encodeURIComponent(queryText)}`;
+      window.location.href = searchUrl;
+      return;
+    }
+    
+    // Option 2: Default behavior - Dynamic Data (same page)
     this.context.dynamicDataSourceManager.notifyPropertyChanged('inputQueryText');
   }
 
@@ -244,6 +256,21 @@ export default class SpfxBannerSearchWebPart extends BaseClientSideWebPart<ISpfx
                 PropertyPaneToggle('enableSuggestions', {
                   label: 'Enable Search Suggestions',
                   checked: this.properties.enableSuggestions
+                })
+              ]
+            },
+            {
+              groupName: "Search Behavior",
+              groupFields: [
+                PropertyPaneToggle('redirectToSearchPage', {
+                  label: 'Redirect to Search Page',
+                  checked: this.properties.redirectToSearchPage
+                }),
+                PropertyPaneTextField('searchPageUrl', {
+                  label: 'Search Page URL',
+                  description: 'URL to redirect to when search is submitted (e.g., /sites/search/pages/results.aspx)',
+                  value: this.properties.searchPageUrl,
+                  disabled: !this.properties.redirectToSearchPage
                 })
               ]
             }
