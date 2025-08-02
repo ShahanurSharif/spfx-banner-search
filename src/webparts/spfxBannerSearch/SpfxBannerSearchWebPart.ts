@@ -264,12 +264,12 @@ export default class SpfxBannerSearchWebPart extends BaseClientSideWebPart<ISpfx
               groupFields: [
                 PropertyPaneToggle('redirectToSearchPage', {
                   label: 'Redirect to Search Page',
-                  checked: this.properties.redirectToSearchPage
+                  checked: this.properties.redirectToSearchPage || false
                 }),
                 PropertyPaneTextField('searchPageUrl', {
                   label: 'Search Page URL',
                   description: 'URL to redirect to when search is submitted (e.g., /sites/search/pages/results.aspx)',
-                  value: this.properties.searchPageUrl,
+                  value: this.properties.searchPageUrl || '',
                   disabled: !this.properties.redirectToSearchPage
                 })
               ]
