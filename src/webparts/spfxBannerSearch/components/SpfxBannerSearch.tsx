@@ -168,6 +168,7 @@ const SpfxBannerSearch: React.FC<ISpfxBannerSearchProps> = (props) => {
               <AISearch
                 placeholder={searchBoxPlaceholder || 'Ask me anything...'}
                 onSearchQuery={handleSearch}
+                enableSuggestions={enableSuggestions}
               />
             ) : (
               <HeroSearchBox
