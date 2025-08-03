@@ -22,13 +22,13 @@ export interface ISpfxBannerSearchWebPartProps {
   gradientEndColor: string;
   showCircleAnimation: boolean;
   minHeight: number;
+  bannerTitle: string;
   searchBoxPlaceholder: string;
   
   // Search behavior configuration
   queryTemplate: string;
   resultsWebPartId: string;
   enableSuggestions: boolean;
-  enableAISearch: boolean;
   
   // Redirect configuration
   redirectToSearchPage: boolean;
@@ -49,10 +49,10 @@ export default class SpfxBannerSearchWebPart extends BaseClientSideWebPart<ISpfx
         gradientEndColor: this.properties.gradientEndColor || '#106ebe',
         showCircleAnimation: this.properties.showCircleAnimation !== false,
         minHeight: this.properties.minHeight || 500,
+        bannerTitle: this._processDynamicTitle(this.properties.bannerTitle || 'Find What You Need'),
         searchBoxPlaceholder: this.properties.searchBoxPlaceholder || 'Search everything...',
         queryTemplate: this.properties.queryTemplate || '*',
         enableSuggestions: this.properties.enableSuggestions !== false,
-        enableAISearch: this.properties.enableAISearch || false,
         isDarkTheme: this._isDarkTheme,
         environmentMessage: this._environmentMessage,
         hasTeamsContext: !!this.context.sdks.microsoftTeams,
@@ -64,6 +64,36 @@ export default class SpfxBannerSearchWebPart extends BaseClientSideWebPart<ISpfx
     );
 
     ReactDom.render(element, this.domElement);
+  }
+
+  /**
+   * Process dynamic title with user property replacements
+   * Supports placeholders: {email}, {firstname}, {lastname}, {displayname}
+   */
+  private _processDynamicTitle(title: string): string {
+    if (!title || title.indexOf('{') === -1) {
+      return title;
+    }
+
+    const user = this.context.pageContext.user;
+    let processedTitle = title;
+
+    // Replace user property placeholders
+    const replacements = {
+      '{email}': user.email || '',
+      '{firstname}': user.displayName ? user.displayName.split(' ')[0] : '',
+      '{lastname}': user.displayName ? user.displayName.split(' ').slice(1).join(' ') : '',
+      '{displayname}': user.displayName || '',
+      '{loginname}': user.loginName || ''
+    };
+
+    // Apply replacements
+    Object.keys(replacements).forEach(placeholder => {
+      const regex = new RegExp(placeholder.replace(/[{}]/g, '\\$&'), 'gi');
+      processedTitle = processedTitle.replace(regex, replacements[placeholder]);
+    });
+
+    return processedTitle;
   }
 
   /**
@@ -223,13 +253,15 @@ export default class SpfxBannerSearchWebPart extends BaseClientSideWebPart<ISpfx
                   showValue: true,
                   value: this.properties.minHeight
                 }),
+                PropertyPaneTextField('bannerTitle', {
+                  label: 'Banner Title',
+                  description: 'Title text. Use {email}, {firstname}, {lastname}, {displayname} for dynamic user properties',
+                  value: this.properties.bannerTitle,
+                  placeholder: 'Find What You Need'
+                }),
                 PropertyPaneTextField('searchBoxPlaceholder', {
                   label: 'Search Box Placeholder Text',
                   value: this.properties.searchBoxPlaceholder
-                }),
-                PropertyPaneToggle('enableAISearch', {
-                  label: 'Enable AI Search',
-                  checked: this.properties.enableAISearch
                 })
               ]
             }

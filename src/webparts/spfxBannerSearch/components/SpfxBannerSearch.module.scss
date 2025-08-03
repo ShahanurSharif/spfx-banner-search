@@ -163,7 +163,7 @@
   
   // Full bleed mode - make search container wider
   :global(.CanvasSection.CanvasSection--fullBleed) & {
-    max-width: 90%; // Use 90% of viewport in full bleed mode
+    max-width: 100%; // Use 90% of viewport in full bleed mode
   }
 }
 
@@ -222,21 +222,21 @@
   font-style: italic;
 }
 
-// Search suggestions dropdown
+// Search suggestions dropdown - more transparent
 .suggestionsDropdown {
   position: absolute;
   top: 100%;
   left: 0;
   right: 0;
-  background: rgba(255, 255, 255, 0.98);
-  backdrop-filter: blur(12px);
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(20px);
   border-radius: 16px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
   margin-top: 8px;
   z-index: 1000;
   max-height: 300px;
   overflow-y: auto;
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.3);
 }
 
 .suggestionItem {
@@ -245,8 +245,9 @@
   display: flex;
   align-items: center;
   gap: 12px;
-  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.03);
   transition: all 0.2s ease;
+  background: rgba(255, 255, 255, 0.1);
   
   &:last-child {
     border-bottom: none;
@@ -254,7 +255,8 @@
   
   &:hover,
   &.highlighted {
-    background: rgba(0, 120, 212, 0.1);
+    background: rgba(0, 120, 212, 0.15);
+    backdrop-filter: blur(8px);
     transform: translateX(4px);
   }
   
@@ -288,6 +290,94 @@
   color: #605e5c;
   font-style: italic;
   font-size: 14px;
+}
+
+// AI Search Toggle Button
+.aiToggleContainer {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  z-index: 10;
+  
+  @media (max-width: 768px) {
+    top: 15px;
+    right: 15px;
+  }
+}
+
+.aiToggleButton {
+  background: rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 20px;
+  padding: 8px 12px;
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 80px;
+  justify-content: center;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+  
+  &:hover {
+    background: rgba(255, 255, 255, 0.25);
+    border-color: rgba(255, 255, 255, 0.3);
+    transform: translateY(-1px);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+    color: rgba(255, 255, 255, 1);
+  }
+  
+  &:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  }
+  
+  &.active {
+    background: rgba(255, 255, 255, 0.3);
+    border-color: rgba(255, 255, 255, 0.4);
+    color: rgba(255, 255, 255, 1);
+    
+    .aiToggleIcon {
+      animation: pulse 2s infinite;
+    }
+  }
+  
+  @media (max-width: 768px) {
+    padding: 6px 10px;
+    font-size: 11px;
+    min-width: 70px;
+    border-radius: 16px;
+  }
+}
+
+.aiToggleIcon {
+  font-size: 14px;
+  
+  @media (max-width: 768px) {
+    font-size: 12px;
+  }
+}
+
+.aiToggleText {
+  @media (max-width: 480px) {
+    display: none; // Hide text on very small screens, show only icon
+  }
+}
+
+// Pulse animation for active AI toggle
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.7;
+    transform: scale(1.1);
+  }
 }
 
 // Accessibility

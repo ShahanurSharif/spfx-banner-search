@@ -7,12 +7,12 @@ export interface ISpfxBannerSearchProps {
   gradientEndColor: string;
   showCircleAnimation: boolean;
   minHeight: number;
+  bannerTitle: string;
   searchBoxPlaceholder: string;
   
   // Search behavior configuration
   queryTemplate: string;
   enableSuggestions: boolean;
-  enableAISearch: boolean;
   
   // SPFx context and theme
   isDarkTheme: boolean;
