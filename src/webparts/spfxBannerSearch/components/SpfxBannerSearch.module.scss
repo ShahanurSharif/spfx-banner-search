@@ -170,19 +170,12 @@
 .heroSearchBox {
   width: 100%;
   height: 56px;
-  border-radius: 28px;
   border: none;
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
   font-size: 1.125rem;
-  padding: 0 24px 0 56px;
+  padding: 0 5px 0 5px;
   background: rgba(255, 255, 255, 0.95);
   backdrop-filter: blur(10px);
-
-  // Search icon styling
-  :global(.ms-SearchBox-iconContainer) {
-    left: 20px;
-    color: #605e5c;
-  }
 
   // Input field styling
   :global(.ms-SearchBox-field) {
@@ -190,11 +183,36 @@
     background: transparent;
     color: #323130;
     font-size: 1.125rem;
-    padding-left: 16px;
+    padding-left: 5px;
+    outline: none;
+    transition: none;
+
+    &:focus {
+      outline: none;
+      box-shadow: none;
+    }
 
     &::placeholder {
       color: #605e5c;
       font-style: italic;
+    }
+  }
+
+  // Hide search icon container since we removed the icon
+  :global(.ms-SearchBox-iconContainer) {
+    display: none;
+  }
+
+  // Remove default Fluent UI focus animations and styles
+  &:focus-within {
+    outline: none;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+  }
+
+  :global(.ms-SearchBox) {
+    &:focus-within {
+      outline: none;
+      box-shadow: none;
     }
   }
 
@@ -206,12 +224,7 @@
   @media (max-width: 768px) {
     height: 48px;
     font-size: 1rem;
-    padding: 0 20px 0 48px;
-    border-radius: 24px;
-
-    :global(.ms-SearchBox-iconContainer) {
-      left: 16px;
-    }
+    padding: 0 5px 0 5px;
   }
 }
 
@@ -230,7 +243,6 @@
   right: 0;
   background: rgba(255, 255, 255, 0.85);
   backdrop-filter: blur(20px);
-  border-radius: 16px;
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
   margin-top: 8px;
   z-index: 1000;
@@ -260,12 +272,6 @@
     transform: translateX(4px);
   }
   
-  .suggestionIcon {
-    color: #0078d4;
-    font-size: 16px;
-    min-width: 16px;
-  }
-  
   .suggestionText {
     flex: 1;
     color: #323130;
@@ -274,12 +280,19 @@
     .suggestionTitle {
       font-weight: 500;
       margin-bottom: 2px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
     
     .suggestionSubtitle {
       font-size: 12px;
       color: #605e5c;
       opacity: 0.8;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      line-height: 1.2;
     }
   }
 }
@@ -290,6 +303,15 @@
   color: #605e5c;
   font-style: italic;
   font-size: 14px;
+}
+
+.searchingIndicator {
+  padding: 16px 20px;
+  text-align: center;
+  color: #605e5c;
+  font-style: italic;
+  font-size: 14px;
+  background: rgba(0, 120, 212, 0.1);
 }
 
 // AI Search Toggle Button
@@ -309,7 +331,6 @@
   background: rgba(255, 255, 255, 0.15);
   backdrop-filter: blur(8px);
   border: 1px solid rgba(255, 255, 255, 0.2);
-  border-radius: 20px;
   padding: 8px 12px;
   color: rgba(255, 255, 255, 0.9);
   font-size: 12px;
@@ -350,7 +371,6 @@
     padding: 6px 10px;
     font-size: 11px;
     min-width: 70px;
-    border-radius: 16px;
   }
 }
 
@@ -458,7 +478,6 @@
 }
 
 .aiSearchButton {
-  border-radius: 24px !important;
   height: 48px !important;
   font-size: 1rem !important;
   font-weight: 600 !important;

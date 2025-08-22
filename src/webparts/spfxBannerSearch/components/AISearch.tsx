@@ -13,7 +13,6 @@
 import * as React from 'react';
 import { useState, useCallback, useEffect, useRef } from 'react';
 import { SearchBox } from '@fluentui/react/lib/SearchBox';
-import { Icon } from '@fluentui/react/lib/Icon';
 import styles from './SpfxBannerSearch.module.scss';
 
 export interface IAISearchProps {
@@ -159,7 +158,6 @@ const AISearch: React.FC<IAISearchProps> = ({ placeholder, onSearchQuery, enable
         onKeyDown={handleKeyDown}
         onFocus={handleFocus}
         className={styles.heroSearchBox}
-        iconProps={{ iconName: 'Robot' }}
         autoComplete="off"
         aria-expanded={showSuggestions}
         aria-haspopup="listbox"
@@ -182,7 +180,6 @@ const AISearch: React.FC<IAISearchProps> = ({ placeholder, onSearchQuery, enable
               aria-selected={index === highlightedIndex}
               onMouseEnter={() => setHighlightedIndex(index)}
             >
-              <Icon iconName={suggestion.icon} className={styles.suggestionIcon} />
               <div className={styles.suggestionText}>
                 <div className={styles.suggestionTitle}>{suggestion.title}</div>
                 {suggestion.subtitle && (
