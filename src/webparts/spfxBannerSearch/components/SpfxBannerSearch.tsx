@@ -28,15 +28,18 @@
  */
 
 import * as React from 'react';
-import { useState, useCallback, useMemo, useRef, useEffect } from 'react';
+import { useState, useCallback, useMemo } from 'react';
 import styles from './SpfxBannerSearch.module.scss';
 import type { ISpfxBannerSearchProps } from './ISpfxBannerSearchProps';
 import { SearchBox } from '@fluentui/react/lib/SearchBox';
 import { ThemeProvider } from '@fluentui/react/lib/Theme';
 import { Icon } from '@fluentui/react/lib/Icon';
 import AISearch from './AISearch';
-import { SPHttpClient, SPHttpClientResponse } from '@microsoft/sp-http';
+// ...existing code...
 import { WebPartContext } from '@microsoft/sp-webpart-base';
+
+import { SharePointSearchService } from '../../../services/SharePointSearchService';
+import { useTypeahead } from '../../../hooks/useTypeahead';
 
 // Animation component for floating circles
 const AnimatedCircles: React.FC<{ show: boolean }> = React.memo(({ show }) => {
@@ -84,251 +87,88 @@ const AIToggle: React.FC<{
   );
 });
 
-// SharePoint search result interface
-interface ISharePointResult {
-  id: string;
-  title: string;
-  subtitle?: string;
-  url: string;
-  fileType: string;
-  lastModified: string;
-  author?: string;
-}
 
 
 
-// Enhanced search box component with SharePoint search suggestions
+
+
+
+
+// Enhanced search box component with SharePoint Search type-ahead suggestions (refactored)
 const HeroSearchBox: React.FC<{
   placeholder: string;
   onSearch: (query: string) => void;
   enableSuggestions: boolean;
   semanticColors: Partial<import('@fluentui/react/lib/Styling').ISemanticColors>;
   context: WebPartContext;
-}> = React.memo(({ placeholder, onSearch, enableSuggestions, semanticColors, context }) => {
-  const [searchValue, setSearchValue] = useState('');
-  const [showSuggestions, setShowSuggestions] = useState<boolean>(false);
-  const [searchResults, setSearchResults] = useState<ISharePointResult[]>([]);
+  searchSiteUrl?: string;
+  debugSuggestions?: boolean;
+}> = React.memo(({ placeholder, onSearch, enableSuggestions, semanticColors, context, searchSiteUrl, debugSuggestions }) => {
+  const service = useMemo(() => new SharePointSearchService(context, searchSiteUrl, debugSuggestions), [context, searchSiteUrl, debugSuggestions]);
+  const {
+    value: searchValue,
+    onChange,
+    suggestions,
+    open: showSuggestions,
+    loading: isSearching,
+  // error, // not used
+    setOpen: setShowSuggestions,
+    setSuggestions
+  } = useTypeahead(enableSuggestions ? service.fetchSuggestions.bind(service) : async () => [], 250);
   const [highlightedIndex, setHighlightedIndex] = useState<number>(-1);
-  const [isSearching, setIsSearching] = useState<boolean>(false);
-  
-  const searchBoxRef = useRef<HTMLDivElement>(null);
-  const suggestionsRef = useRef<HTMLDivElement>(null);
 
-  // Search other common document libraries
-  const searchOtherLibraries = useCallback(async (query: string) => {
-    if (!context) return;
-    
-    try {
-      // Try searching in other common libraries
-      const libraries = ['Shared Documents', 'Site Assets', 'Site Pages'];
-      
-      for (const libraryName of libraries) {
-        try {
-          const libraryUrl = `${context.pageContext.web.absoluteUrl}/_api/web/lists/getbytitle('${encodeURIComponent(libraryName)}')/items?$filter=substringof('${encodeURIComponent(query)}',Title)&$select=Title,FileRef,FileLeafRef,Modified,Author/Title,File_x0020_Type&$expand=Author&$top=5&$orderby=Modified desc`;
-          
-          const response: SPHttpClientResponse = await context.spHttpClient.get(
-            libraryUrl,
-            SPHttpClient.configurations.v1
-          );
-          
-          if (response.ok) {
-            const data = await response.json();
-            
-            if (data.value && data.value.length > 0) {
-              const results: ISharePointResult[] = data.value.map((item: any, index: number) => ({
-                id: `${libraryName}-${index}`,
-                title: item.Title || item.FileLeafRef || 'Untitled',
-                subtitle: `${item.File_x0020_Type || 'Document'} • ${item.Author?.Title || 'Unknown'} • ${new Date(item.Modified).toLocaleDateString()}`,
-                url: item.FileRef,
-                fileType: item.File_x0020_Type || 'Document',
-                lastModified: item.Modified,
-                author: item.Author?.Title || 'Unknown'
-              }));
-              
-              setSearchResults(results);
-              setShowSuggestions(results.length > 0);
-              setHighlightedIndex(-1);
-              return;
-            }
-          }
-        } catch (libraryError) {
-          console.log(`Library ${libraryName} not accessible or empty:`, libraryError);
-          continue;
-        }
-      }
-      
-      // No results found in any library
-      setSearchResults([]);
-      setShowSuggestions(false);
-      
-    } catch (error) {
-      console.error('Other libraries search error:', error);
-      throw error;
-    }
-  }, [context]);
-
-  // Search document libraries directly
-  const searchDocumentLibraries = useCallback(async (query: string) => {
-    if (!context) return;
-    
-    try {
-      // Search in the main Documents library
-      const documentsUrl = `${context.pageContext.web.absoluteUrl}/_api/web/lists/getbytitle('Documents')/items?$filter=substringof('${encodeURIComponent(query)}',Title)&$select=Title,FileRef,FileLeafRef,Modified,Author/Title,File_x0020_Type&$expand=Author&$top=10&$orderby=Modified desc`;
-      
-      const response: SPHttpClientResponse = await context.spHttpClient.get(
-        documentsUrl,
-        SPHttpClient.configurations.v1
-      );
-      
-      if (response.ok) {
-        const data = await response.json();
-        
-        if (data.value && data.value.length > 0) {
-          const results: ISharePointResult[] = data.value.map((item: any, index: number) => ({
-            id: `doc-${index}`,
-            title: item.Title || item.FileLeafRef || 'Untitled',
-            subtitle: `${item.File_x0020_Type || 'Document'} • ${item.FileLeafRef?.split('.').pop() || 'Document'} • ${item.Author?.Title || 'Unknown'} • ${new Date(item.Modified).toLocaleDateString()}`,
-            url: item.FileRef,
-            fileType: item.File_x0020_Type || 'Document',
-            lastModified: item.Modified,
-            author: item.Author?.Title || 'Unknown'
-          }));
-          
-          setSearchResults(results);
-          setShowSuggestions(results.length > 0);
-          setHighlightedIndex(-1);
-          return;
-        }
-      }
-      
-      // If no results in Documents, try searching in other common libraries
-      await searchOtherLibraries(query);
-      
-    } catch (error) {
-      console.error('Documents library search error:', error);
-      throw error;
-    }
-  }, [context, searchOtherLibraries]);
-
-  // SharePoint search functionality - using simpler document library approach
-  const searchSharePoint = useCallback(async (query: string) => {
-    if (!query.trim() || !context) return;
-    
-    setIsSearching(true);
-    try {
-      // Use document library search which is more reliable than the search API
-      await searchDocumentLibraries(query);
-    } catch (error) {
-      console.error('Document library search error:', error);
-      setSearchResults([]);
-      setShowSuggestions(false);
-    } finally {
-      setIsSearching(false);
-    }
-  }, [context, searchDocumentLibraries]);
-
-
-
-  // Search on input change with debouncing
-  useEffect(() => {
-    if (!searchValue.trim() || !enableSuggestions) {
-      setSearchResults([]);
-      setShowSuggestions(false);
-      return;
-    }
-
-    const timeoutId = setTimeout(() => {
-      searchSharePoint(searchValue).catch(console.error);
-    }, 300); // 300ms debounce
-
-    return () => clearTimeout(timeoutId);
-  }, [searchValue, enableSuggestions, searchSharePoint]);
-
-  // Handle search execution
-  const executeSearch = useCallback((searchQuery: string) => {
-    if (searchQuery.trim()) {
-      setShowSuggestions(false);
-      setSearchValue(searchQuery);
-      onSearch(searchQuery.trim());
-    }
-  }, [onSearch]);
-
-  // Handle suggestion selection
-  const selectSuggestion = useCallback((result: ISharePointResult) => {
-    // Open the SharePoint document in a new tab
-    if (result.url) {
-      window.open(result.url, '_blank');
-    }
-    executeSearch(result.title);
-  }, [executeSearch]);
-
-  // Handle keyboard navigation
+  // Keyboard navigation
   const handleKeyDown = useCallback((event: React.KeyboardEvent) => {
-    if (!showSuggestions || searchResults.length === 0) {
+    if (!showSuggestions || suggestions.length === 0) {
       if (event.key === 'Enter') {
-        executeSearch(searchValue);
+        setShowSuggestions(false);
+        setSuggestions([]);
+        onSearch(searchValue);
       }
       return;
     }
-
     switch (event.key) {
       case 'ArrowDown':
         event.preventDefault();
-        setHighlightedIndex(prev => 
-          prev < searchResults.length - 1 ? prev + 1 : 0
-        );
+        setHighlightedIndex(prev => prev < suggestions.length - 1 ? prev + 1 : 0);
         break;
-      
       case 'ArrowUp':
         event.preventDefault();
-        setHighlightedIndex(prev => 
-          prev > 0 ? prev - 1 : searchResults.length - 1
-        );
+        setHighlightedIndex(prev => prev > 0 ? prev - 1 : suggestions.length - 1);
         break;
-      
       case 'Enter':
         event.preventDefault();
-        if (highlightedIndex >= 0 && highlightedIndex < searchResults.length) {
-          selectSuggestion(searchResults[highlightedIndex]);
+        if (highlightedIndex >= 0 && highlightedIndex < suggestions.length) {
+          onChange(suggestions[highlightedIndex].suggestionTitle);
+          setShowSuggestions(false);
+          setSuggestions([]);
         } else {
-          executeSearch(searchValue);
+          setShowSuggestions(false);
+          setSuggestions([]);
+          onSearch(searchValue);
         }
         break;
-      
       case 'Escape':
         setShowSuggestions(false);
         setHighlightedIndex(-1);
         break;
     }
-  }, [showSuggestions, searchResults, highlightedIndex, searchValue, executeSearch, selectSuggestion]);
-
-  // Handle click outside to close suggestions
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent): void => {
-      if (searchBoxRef.current && !searchBoxRef.current.contains(event.target as Node) &&
-          suggestionsRef.current && !suggestionsRef.current.contains(event.target as Node)) {
-        setShowSuggestions(false);
-      }
-    };
-
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
+  }, [showSuggestions, suggestions, highlightedIndex, searchValue, onSearch, onChange, setShowSuggestions, setSuggestions]);
 
   // Handle input focus
   const handleFocus = useCallback((): void => {
-    if (searchValue.trim() && searchResults.length > 0) {
+    if (searchValue.trim() && suggestions.length > 0) {
       setShowSuggestions(true);
     }
-  }, [searchValue, searchResults]);
+  }, [searchValue, suggestions, setShowSuggestions]);
 
   return (
-    <div className={styles.searchContainer} ref={searchBoxRef}>
+    <div className={styles.searchContainer}>
       <SearchBox
         placeholder={placeholder}
         value={searchValue}
-        onChange={(_, newValue) => setSearchValue(newValue || '')}
-        onSearch={executeSearch}
+        onChange={(_, newValue) => onChange(newValue || '')}
+        onSearch={() => { setShowSuggestions(false); setSuggestions([]); onSearch(searchValue); }}
         onKeyDown={handleKeyDown}
         onFocus={handleFocus}
         className={styles.heroSearchBox}
@@ -337,51 +177,43 @@ const HeroSearchBox: React.FC<{
         aria-haspopup="listbox"
         role="combobox"
       />
-      
-      {showSuggestions && searchResults.length > 0 && (
-        <div 
+      {showSuggestions && suggestions.length > 0 && (
+        <div
           className={styles.suggestionsDropdown}
-          ref={suggestionsRef}
           role="listbox"
           aria-label="Search results"
         >
           {isSearching && (
-            <div className={styles.searchingIndicator}>
-              Searching...
-            </div>
+            <div className={styles.searchingIndicator}>Searching...</div>
           )}
-          {searchResults.map((result, index) => (
+          {suggestions.map((item, index) => (
             <div
-              key={result.id}
+              key={item.id}
               className={`${styles.suggestionItem} ${index === highlightedIndex ? styles.highlighted : ''}`}
-              onClick={() => selectSuggestion(result)}
+              onClick={() => { onChange(item.suggestionTitle); setShowSuggestions(false); setSuggestions([]); }}
               role="option"
               aria-selected={index === highlightedIndex}
               onMouseEnter={() => setHighlightedIndex(index)}
             >
               <div className={styles.suggestionText}>
-                <div className={styles.suggestionTitle}>{result.title}</div>
-                {result.subtitle && (
-                  <div className={styles.suggestionSubtitle}>{result.subtitle}</div>
-                )}
+                <div className={styles.suggestionTitle}>{item.suggestionTitle}</div>
+                <div className={styles.suggestionSubtitle}>{item.suggestionSubtitle}</div>
               </div>
             </div>
           ))}
         </div>
       )}
-      
-      {showSuggestions && searchResults.length === 0 && searchValue.trim() && !isSearching && (
-        <div className={styles.suggestionsDropdown} ref={suggestionsRef}>
+      {showSuggestions && suggestions.length === 0 && searchValue.trim() && !isSearching && (
+        <div className={styles.suggestionsDropdown}>
           <div className={styles.noSuggestions}>
             No documents found. Press Enter to search for &quot;{searchValue}&quot;
           </div>
         </div>
       )}
-      
-
     </div>
   );
 });
+
 
 // Main hero banner component
 const SpfxBannerSearch: React.FC<ISpfxBannerSearchProps> = (props) => {
@@ -448,20 +280,17 @@ const SpfxBannerSearch: React.FC<ISpfxBannerSearchProps> = (props) => {
       >
         {/* Animated background circles */}
         <AnimatedCircles show={showCircleAnimation} />
-        
         {/* AI Search Toggle - Top Right Corner */}
         <AIToggle 
           isActive={isAISearchActive} 
           onToggle={handleAIToggle}
         />
-        
         {/* Main content container */}
         <div className={styles.heroContent}>
           <div className={styles.searchWrapper}>
             <h1 className={styles.heroTitle}>
               {bannerTitle || 'Find What You Need'}
             </h1>
-            
             {isAISearchActive ? (
               <AISearch
                 placeholder={searchBoxPlaceholder || 'Ask me anything...'}
@@ -475,11 +304,12 @@ const SpfxBannerSearch: React.FC<ISpfxBannerSearchProps> = (props) => {
                 enableSuggestions={enableSuggestions}
                 semanticColors={semanticColors}
                 context={context}
+                searchSiteUrl={props.searchSiteUrl}
+                debugSuggestions={props.debugSuggestions}
               />
             )}
           </div>
         </div>
-        
         {/* Accessibility landmark */}
         <div className={styles.srOnly}>
           Full-width search interface for finding content

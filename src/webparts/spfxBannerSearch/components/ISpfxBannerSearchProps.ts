@@ -22,4 +22,14 @@ export interface ISpfxBannerSearchProps {
   semanticColors: Partial<ISemanticColors>;
   context: WebPartContext;
   onSearchQuery: (queryText: string) => void;
+
+  /**
+   * Optional: Override the site URL for search suggestions (defaults to context.pageContext.web.absoluteUrl)
+   */
+  searchSiteUrl?: string;
+
+  /**
+   * Optional: Enable debug logging for type-ahead suggestions
+   */
+  debugSuggestions?: boolean;
 }
