@@ -22,6 +22,7 @@ export interface ISpfxBannerSearchWebPartProps {
   gradientEndColor: string;
   showCircleAnimation: boolean;
   minHeight: number;
+  titleFontSize: number;
   bannerTitle: string;
   searchBoxPlaceholder: string;
   
@@ -48,7 +49,8 @@ export default class SpfxBannerSearchWebPart extends BaseClientSideWebPart<ISpfx
         gradientStartColor: this.properties.gradientStartColor || '#0078d4',
         gradientEndColor: this.properties.gradientEndColor || '#106ebe',
         showCircleAnimation: this.properties.showCircleAnimation !== false,
-        minHeight: this.properties.minHeight || 500,
+        minHeight: this.properties.minHeight || 400,
+        titleFontSize: this.properties.titleFontSize || 48,
         bannerTitle: this._processDynamicTitle(this.properties.bannerTitle || 'Find What You Need'),
         searchBoxPlaceholder: this.properties.searchBoxPlaceholder || 'Search everything...',
         queryTemplate: this.properties.queryTemplate || '*',
@@ -256,11 +258,19 @@ export default class SpfxBannerSearchWebPart extends BaseClientSideWebPart<ISpfx
                 }),
                 PropertyPaneSlider('minHeight', {
                   label: 'Banner Minimum Height (px)',
-                  min: 500,
+                  min: 350,
                   max: 800,
                   step: 50,
                   showValue: true,
                   value: this.properties.minHeight
+                }),
+                PropertyPaneSlider('titleFontSize', {
+                  label: 'Title Font Size (px)',
+                  min: 24,
+                  max: 72,
+                  step: 4,
+                  showValue: true,
+                  value: this.properties.titleFontSize
                 }),
                 PropertyPaneTextField('bannerTitle', {
                   label: 'Banner Title',

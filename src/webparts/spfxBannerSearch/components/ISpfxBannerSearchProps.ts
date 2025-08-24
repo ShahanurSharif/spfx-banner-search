@@ -7,6 +7,7 @@ export interface ISpfxBannerSearchProps {
   gradientEndColor: string;
   showCircleAnimation: boolean;
   minHeight: number;
+  titleFontSize: number;
   bannerTitle: string;
   searchBoxPlaceholder: string;
   

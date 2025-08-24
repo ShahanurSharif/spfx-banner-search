@@ -213,9 +213,8 @@ const HeroSearchBox: React.FC<{
         role="combobox"
         style={{
           width: '100%',
-          height: '56px',
           border: 'none',
-          fontSize: '1.125rem',
+          fontSize: '1rem',
           padding: '0 20px',
           borderRadius: '4px',
           outline: 'none'
@@ -300,6 +299,7 @@ const SpfxBannerSearch: React.FC<ISpfxBannerSearchProps> = (props) => {
     gradientEndColor,
     showCircleAnimation,
     minHeight,
+    titleFontSize,
     bannerTitle,
     searchBoxPlaceholder,
     enableSuggestions,
@@ -318,10 +318,11 @@ const SpfxBannerSearch: React.FC<ISpfxBannerSearchProps> = (props) => {
     '--gradient-start': gradientStartColor,
     '--gradient-end': gradientEndColor,
     '--min-height': `${minHeight}px`,
+    '--title-font-size': `${titleFontSize}px`,
     '--body-text': semanticColors?.bodyText || (isDarkTheme ? '#ffffff' : '#323130'),
     '--link-color': semanticColors?.link || '#0078d4',
     '--link-hover': semanticColors?.linkHovered || '#106ebe'
-  } as React.CSSProperties), [gradientStartColor, gradientEndColor, minHeight, semanticColors, isDarkTheme]);
+  } as React.CSSProperties), [gradientStartColor, gradientEndColor, minHeight, titleFontSize, semanticColors, isDarkTheme]);
 
   // Theme provider configuration for Fluent UI components
   const theme = useMemo(() => ({

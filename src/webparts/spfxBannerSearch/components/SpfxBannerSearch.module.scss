@@ -10,7 +10,7 @@
 
 .heroBanner {
   position: relative;
-  min-height: var(--min-height, 450px);
+  min-height: var(--min-height, 400px);
   background: linear-gradient(135deg, var(--gradient-start, #0078d4), var(--gradient-end, #106ebe));
   display: flex;
   align-items: center;
@@ -25,7 +25,7 @@
 
   // Responsive design
   @media (max-width: 768px) {
-    min-height: calc(var(--min-height, 450px) * 0.8);
+    min-height: calc(var(--min-height, 400px) * 0.8);
     padding: 1rem;
   }
 }
@@ -128,18 +128,18 @@
 }
 
 .heroTitle {
-  font-size: 3rem;
+  font-size: var(--title-font-size, 48px);
   font-weight: 600;
   margin: 0;
   text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
   line-height: 1.2;
 
   @media (max-width: 768px) {
-    font-size: 2rem;
+    font-size: calc(var(--title-font-size, 48px) * 0.75);
   }
 
   @media (max-width: 480px) {
-    font-size: 1.5rem;
+    font-size: calc(var(--title-font-size, 48px) * 0.6);
   }
 }
 
@@ -169,10 +169,10 @@
 
 .heroSearchBox {
   width: 100%;
-  height: 56px;
+  height: 30px;
   border: none;
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
-  font-size: 1.125rem;
+  font-size: 1rem;
   padding: 0 5px 0 5px;
   background: rgba(255, 255, 255, 0.95);
   backdrop-filter: blur(10px);
@@ -180,9 +180,11 @@
   // Input field styling
   :global(.ms-SearchBox-field) {
     border: none;
-    background: transparent;
+    background: #ffffff !important;
     color: #323130;
-    font-size: 1.125rem;
+    font-size: 1rem;
+    height: 30px !important;
+    line-height: 30px !important;
     padding-left: 5px;
     outline: none;
     transition: none;
@@ -190,11 +192,23 @@
     &:focus {
       outline: none;
       box-shadow: none;
+      background: #ffffff !important;
+      height: 30px !important;
     }
 
     &::placeholder {
       color: #605e5c;
       font-style: italic;
+    }
+  }
+
+  // Additional targeting for the search box wrapper
+  :global(.ms-SearchBox) {
+    height: 30px !important;
+    
+    :global(.ms-SearchBox-field) {
+      height: 30px !important;
+      line-height: 30px !important;
     }
   }
 
@@ -222,8 +236,8 @@
   }
 
   @media (max-width: 768px) {
-    height: 48px;
-    font-size: 1rem;
+    height: 28px;
+    font-size: 0.9rem;
     padding: 0 5px 0 5px;
   }
 }
@@ -427,22 +441,28 @@
   }
   
   .heroSearchBox {
-    background: rgba(45, 45, 45, 0.95);
-    color: #ffffff;
+    background: rgba(255, 255, 255, 0.95) !important;
+    color: #323130;
     
     :global(.ms-SearchBox-field) {
-      color: #ffffff;
+      background: #ffffff !important;
+      color: #323130 !important;
+      
+      &:focus {
+        background: #ffffff !important;
+        color: #323130 !important;
+      }
       
       &::placeholder {
-        color: #c8c6c4;
+        color: #605e5c !important;
       }
     }
     
     :global(.ms-SearchBox-clearButton) {
-      color: #c8c6c4;
+      color: #605e5c;
       
       &:hover {
-        color: #ffffff;
+        color: #323130;
       }
     }
   }
