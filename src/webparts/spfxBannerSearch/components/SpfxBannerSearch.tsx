@@ -117,19 +117,20 @@ const HeroSearchBox: React.FC<{
   placeholder: string;
   onSearch: (query: string) => void;
   enableSuggestions: boolean;
+  suggestionsLimit: number;
   semanticColors: Partial<import('@fluentui/react/lib/Styling').ISemanticColors>;
   context: WebPartContext;
   searchSiteUrl?: string;
   debugSuggestions?: boolean;
-}> = React.memo(({ placeholder, onSearch, enableSuggestions, semanticColors, context, searchSiteUrl, debugSuggestions }) => {
+}> = React.memo(({ placeholder, onSearch, enableSuggestions, suggestionsLimit, semanticColors, context, searchSiteUrl, debugSuggestions }) => {
   console.debug("[HeroSearchBox] Component is rendering with props:", { placeholder, enableSuggestions });
   const service = useMemo(() => new SharePointSearchService(context, searchSiteUrl, debugSuggestions), [context, searchSiteUrl, debugSuggestions]);
   
   // Create a stable fetchFn to prevent infinite loops
   const fetchFn = useCallback(
-    (term: string, signal?: AbortSignal) => {
+    (term: string, signal?: AbortSignal, limit?: number) => {
       if (!enableSuggestions) return Promise.resolve([]);
-      return service.fetchSuggestions(term, signal);
+      return service.fetchSuggestions(term, signal, limit);
     },
     [service, enableSuggestions]
   );
@@ -143,7 +144,7 @@ const HeroSearchBox: React.FC<{
   // error, // not used
     setOpen: setShowSuggestions,
     setSuggestions
-  } = useTypeahead(fetchFn, 250);
+  } = useTypeahead(fetchFn, 250, suggestionsLimit);
   
   // Use the open state from useTypeahead hook
   const showSuggestions = suggestionsOpen;
@@ -403,6 +404,7 @@ const SpfxBannerSearch: React.FC<ISpfxBannerSearchProps> = (props) => {
                 placeholder={searchBoxPlaceholder}
                 onSearch={handleSearch}
                 enableSuggestions={enableSuggestions}
+                suggestionsLimit={props.suggestionsLimit}
                 semanticColors={semanticColors}
                 context={context}
                 searchSiteUrl={props.searchSiteUrl}

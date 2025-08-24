@@ -13,7 +13,7 @@ export interface SuggestionItem {
 export class SharePointSearchService {
   constructor(private context: WebPartContext, private siteUrl?: string, private debugSuggestions?: boolean) {}
 
-  public async fetchSuggestions(term: string, signal?: AbortSignal): Promise<SuggestionItem[]> {
+  public async fetchSuggestions(term: string, signal?: AbortSignal, limit: number = 10): Promise<SuggestionItem[]> {
     if (!term || !term.trim()) return [];
     const baseUrl = (this.siteUrl || this.context.pageContext.web.absoluteUrl).replace(/\/$/, "");
     
@@ -21,8 +21,8 @@ export class SharePointSearchService {
     const queryText = encodeURIComponent(`${term.trim()}*`);
     const selectProperties = encodeURIComponent("Title,Path,Author,LastModifiedTime,FileType,SiteName,SPWebUrl,HitHighlightedSummary,FileName,Name,FileLeafRef");
     
-    // Match the exact format from the working version
-    const url = `${baseUrl}/_api/search/query?querytext='${queryText}'&selectproperties='${selectProperties}'&rowlimit=10&trimduplicates=true`;
+    // Match the exact format from the working version, using the provided limit
+    const url = `${baseUrl}/_api/search/query?querytext='${queryText}'&selectproperties='${selectProperties}'&rowlimit=${limit}&trimduplicates=true`;
     
     if (this.debugSuggestions) {
       console.debug("[SharePoint Search API] URL:", url);

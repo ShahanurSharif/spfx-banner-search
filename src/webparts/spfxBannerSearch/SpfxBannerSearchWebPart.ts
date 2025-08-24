@@ -30,6 +30,7 @@ export interface ISpfxBannerSearchWebPartProps {
   queryTemplate: string;
   resultsWebPartId: string;
   enableSuggestions: boolean;
+  suggestionsLimit: number;
   
   // Redirect configuration
   redirectToSearchPage: boolean;
@@ -55,6 +56,7 @@ export default class SpfxBannerSearchWebPart extends BaseClientSideWebPart<ISpfx
         searchBoxPlaceholder: this.properties.searchBoxPlaceholder || 'Search everything...',
         queryTemplate: this.properties.queryTemplate || '*',
         enableSuggestions: this.properties.enableSuggestions !== false,
+        suggestionsLimit: this.properties.suggestionsLimit || 10,
         isDarkTheme: this._isDarkTheme,
         environmentMessage: this._environmentMessage,
         hasTeamsContext: !!this.context.sdks.microsoftTeams,
@@ -307,6 +309,15 @@ export default class SpfxBannerSearchWebPart extends BaseClientSideWebPart<ISpfx
                 PropertyPaneToggle('enableSuggestions', {
                   label: 'Enable Search Suggestions',
                   checked: this.properties.enableSuggestions
+                }),
+                PropertyPaneSlider('suggestionsLimit', {
+                  label: 'Number of suggestions to show per group',
+                  min: 1,
+                  max: 20,
+                  step: 1,
+                  showValue: true,
+                  value: this.properties.suggestionsLimit || 10,
+                  disabled: this.properties.enableSuggestions === false
                 })
               ]
             },

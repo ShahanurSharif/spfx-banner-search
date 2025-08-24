@@ -2,8 +2,9 @@ import { useState, useRef, useCallback, useEffect } from "react";
 import type { SuggestionItem } from "../services/SharePointSearchService";
 
 export function useTypeahead(
-  fetchFn: (term: string, signal?: AbortSignal) => Promise<SuggestionItem[]>,
-  debounceMs = 250
+  fetchFn: (term: string, signal?: AbortSignal, limit?: number) => Promise<SuggestionItem[]>,
+  debounceMs = 250,
+  limit = 10
 ): {
   value: string;
   onChange: (v: string) => void;
@@ -44,7 +45,7 @@ export function useTypeahead(
       setLoading(true);
       setError(undefined);
       try {
-        const items = await fetchFn(value, ctrl.signal);
+        const items = await fetchFn(value, ctrl.signal, limit);
         console.log("[useTypeahead] Received items count:", items.length);
         console.log("[useTypeahead] Received items:", items);
         setSuggestions(items);
@@ -65,7 +66,7 @@ export function useTypeahead(
       if (tRef.current) clearTimeout(tRef.current);
       if (ctrlRef.current) ctrlRef.current.abort();
     };
-  }, [value, fetchFn, debounceMs]);
+  }, [value, fetchFn, debounceMs, limit]);
 
   return { value, onChange, suggestions, open, loading, error, setOpen, setSuggestions };
 }

@@ -14,6 +14,7 @@ export interface ISpfxBannerSearchProps {
   // Search behavior configuration
   queryTemplate: string;
   enableSuggestions: boolean;
+  suggestionsLimit: number;
   
   // SPFx context and theme
   isDarkTheme: boolean;
