@@ -87,10 +87,19 @@ export default class SpfxBannerSearchWebPart extends BaseClientSideWebPart<ISpfx
       '{loginname}': user.loginName || ''
     };
 
-    // Apply replacements
+    // Apply replacements using safer string replacement approach
     Object.keys(replacements).forEach(placeholder => {
-      const regex = new RegExp(placeholder.replace(/[{}]/g, '\\$&'), 'gi');
-      processedTitle = processedTitle.replace(regex, replacements[placeholder]);
+      // Use simple string replacement instead of regex to avoid security concerns
+      while (processedTitle.toLowerCase().includes(placeholder.toLowerCase())) {
+        const index = processedTitle.toLowerCase().indexOf(placeholder.toLowerCase());
+        if (index !== -1) {
+          processedTitle = processedTitle.substring(0, index) + 
+                          replacements[placeholder] + 
+                          processedTitle.substring(index + placeholder.length);
+        } else {
+          break;
+        }
+      }
     });
 
     return processedTitle;

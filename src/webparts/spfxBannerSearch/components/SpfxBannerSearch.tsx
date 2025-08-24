@@ -31,7 +31,7 @@ import * as React from 'react';
 import { useState, useCallback, useMemo } from 'react';
 import styles from './SpfxBannerSearch.module.scss';
 import type { ISpfxBannerSearchProps } from './ISpfxBannerSearchProps';
-import { SearchBox } from '@fluentui/react/lib/SearchBox';
+// import { SearchBox } from '@fluentui/react/lib/SearchBox'; // Temporarily commented out for testing
 import { ThemeProvider } from '@fluentui/react/lib/Theme';
 import { Icon } from '@fluentui/react/lib/Icon';
 import AISearch from './AISearch';
@@ -104,17 +104,36 @@ const HeroSearchBox: React.FC<{
   searchSiteUrl?: string;
   debugSuggestions?: boolean;
 }> = React.memo(({ placeholder, onSearch, enableSuggestions, semanticColors, context, searchSiteUrl, debugSuggestions }) => {
+  console.debug("[HeroSearchBox] Component is rendering with props:", { placeholder, enableSuggestions });
   const service = useMemo(() => new SharePointSearchService(context, searchSiteUrl, debugSuggestions), [context, searchSiteUrl, debugSuggestions]);
+  
+  // Create a stable fetchFn to prevent infinite loops
+  const fetchFn = useCallback(
+    (term: string, signal?: AbortSignal) => {
+      if (!enableSuggestions) return Promise.resolve([]);
+      return service.fetchSuggestions(term, signal);
+    },
+    [service, enableSuggestions]
+  );
+  
   const {
     value: searchValue,
     onChange,
     suggestions,
-    open: showSuggestions,
+    open: suggestionsOpen,
     loading: isSearching,
   // error, // not used
     setOpen: setShowSuggestions,
     setSuggestions
-  } = useTypeahead(enableSuggestions ? service.fetchSuggestions.bind(service) : async () => [], 250);
+  } = useTypeahead(fetchFn, 250);
+  
+  // Use the open state from useTypeahead hook
+  const showSuggestions = suggestionsOpen;
+  
+  // Debug logging (only when enabled)
+  if (debugSuggestions) {
+    console.debug("[HeroSearchBox] showSuggestions:", showSuggestions, "suggestions.length:", suggestions.length);
+  }
   const [highlightedIndex, setHighlightedIndex] = useState<number>(-1);
 
   // Keyboard navigation
@@ -155,59 +174,117 @@ const HeroSearchBox: React.FC<{
     }
   }, [showSuggestions, suggestions, highlightedIndex, searchValue, onSearch, onChange, setShowSuggestions, setSuggestions]);
 
-  // Handle input focus
+  // Simple focus handler - let useTypeahead manage the suggestions
   const handleFocus = useCallback((): void => {
-    if (searchValue.trim() && suggestions.length > 0) {
-      setShowSuggestions(true);
-    }
-  }, [searchValue, suggestions, setShowSuggestions]);
+    // Focus handling is now managed by useTypeahead hook
+  }, []);
 
+  // Handle input blur with delay to allow for clicks
+  const handleBlur = useCallback((event: React.FocusEvent) => {
+    // Delay hiding suggestions to allow for suggestion clicks
+    setTimeout(() => {
+      if (event.currentTarget && !event.currentTarget.contains(document.activeElement)) {
+        setShowSuggestions(false);
+        setHighlightedIndex(-1);
+      }
+    }, 150);
+  }, [setShowSuggestions]);
+
+  console.debug("[HeroSearchBox] Rendering SearchBox with value:", searchValue);
+  
   return (
     <div className={styles.searchContainer}>
-      <SearchBox
+      {/* Temporary: Using regular input to test if SearchBox is the issue */}
+      <input
+        type="text"
         placeholder={placeholder}
         value={searchValue}
-        onChange={(_, newValue) => onChange(newValue || '')}
-        onSearch={() => { setShowSuggestions(false); setSuggestions([]); onSearch(searchValue); }}
+        onChange={(e) => {
+          console.debug("[Input] onChange called with:", e.target.value);
+          onChange(e.target.value || '');
+        }}
         onKeyDown={handleKeyDown}
         onFocus={handleFocus}
+        onBlur={handleBlur}
         className={styles.heroSearchBox}
         autoComplete="off"
         aria-expanded={showSuggestions}
         aria-haspopup="listbox"
         role="combobox"
+        style={{
+          width: '100%',
+          height: '56px',
+          border: 'none',
+          fontSize: '1.125rem',
+          padding: '0 20px',
+          borderRadius: '4px',
+          outline: 'none'
+        }}
       />
-      {showSuggestions && suggestions.length > 0 && (
+      {searchValue.trim().length > 0 && (
         <div
           className={styles.suggestionsDropdown}
           role="listbox"
           aria-label="Search results"
+          style={{
+            position: 'absolute',
+            top: '100%',
+            left: 0,
+            right: 0,
+            background: 'white',
+            border: '1px solid #ccc',
+            borderRadius: '4px',
+            boxShadow: '0 4px 8px rgba(0,0,0,0.1)',
+            zIndex: 1000,
+            maxHeight: '300px',
+            overflowY: 'auto'
+          }}
         >
           {isSearching && (
-            <div className={styles.searchingIndicator}>Searching...</div>
+            <div className={styles.searchingIndicator} style={{ padding: '16px 20px', textAlign: 'center', color: '#666' }}>
+              Searching...
+            </div>
           )}
-          {suggestions.map((item, index) => (
+          {!isSearching && suggestions.length === 0 && (
+            <div style={{ padding: '16px 20px', textAlign: 'center', color: '#666', fontStyle: 'italic' }}>
+              No content found for &quot;{searchValue}&quot;
+            </div>
+          )}
+          {!isSearching && suggestions.length > 0 && suggestions.map((item, index) => (
             <div
               key={item.id}
               className={`${styles.suggestionItem} ${index === highlightedIndex ? styles.highlighted : ''}`}
-              onClick={() => { onChange(item.suggestionTitle); setShowSuggestions(false); setSuggestions([]); }}
+              onClick={() => { 
+                // If item has a path, open it in new tab, otherwise perform search
+                if (item.path && item.path.trim()) {
+                  window.open(item.path, '_blank', 'noopener,noreferrer');
+                } else {
+                  onChange(item.suggestionTitle); 
+                  onSearch(item.suggestionTitle);
+                }
+                setShowSuggestions(false); 
+                setSuggestions([]);
+              }}
               role="option"
               aria-selected={index === highlightedIndex}
               onMouseEnter={() => setHighlightedIndex(index)}
+              style={{
+                padding: '12px 20px',
+                cursor: 'pointer',
+                borderBottom: '1px solid #eee',
+                backgroundColor: index === highlightedIndex ? '#f0f0f0' : 'white'
+              }}
             >
-              <div className={styles.suggestionText}>
-                <div className={styles.suggestionTitle}>{item.suggestionTitle}</div>
-                <div className={styles.suggestionSubtitle}>{item.suggestionSubtitle}</div>
+              <div className={styles.suggestionText} style={{ color: '#333' }}>
+                <div className={styles.suggestionTitle} style={{ fontWeight: 'bold', marginBottom: '4px' }}>
+                  {item.suggestionTitle}
+                </div>
+                <div className={styles.suggestionSubtitle} style={{ fontSize: '12px', color: '#666' }}>
+                  {item.suggestionSubtitle}
+                </div>
               </div>
             </div>
           ))}
-        </div>
-      )}
-      {showSuggestions && suggestions.length === 0 && searchValue.trim() && !isSearching && (
-        <div className={styles.suggestionsDropdown}>
-          <div className={styles.noSuggestions}>
-            No documents found. Press Enter to search for &quot;{searchValue}&quot;
-          </div>
         </div>
       )}
     </div>
@@ -217,6 +294,7 @@ const HeroSearchBox: React.FC<{
 
 // Main hero banner component
 const SpfxBannerSearch: React.FC<ISpfxBannerSearchProps> = (props) => {
+  console.debug("[SpfxBannerSearch] Main component is rendering");
   const {
     gradientStartColor,
     gradientEndColor,
@@ -318,5 +396,7 @@ const SpfxBannerSearch: React.FC<ISpfxBannerSearchProps> = (props) => {
     </ThemeProvider>
   );
 };
+
+console.debug("[SpfxBannerSearch] Module loaded");
 
 export default SpfxBannerSearch;

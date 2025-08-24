@@ -4,37 +4,56 @@ import type { SuggestionItem } from "../services/SharePointSearchService";
 export function useTypeahead(
   fetchFn: (term: string, signal?: AbortSignal) => Promise<SuggestionItem[]>,
   debounceMs = 250
-) {
+): {
+  value: string;
+  onChange: (v: string) => void;
+  suggestions: SuggestionItem[];
+  open: boolean;
+  loading: boolean;
+  error: string | undefined;
+  setOpen: (open: boolean) => void;
+  setSuggestions: (suggestions: SuggestionItem[]) => void;
+} {
   const [value, setValue] = useState("");
   const [suggestions, setSuggestions] = useState<SuggestionItem[]>([]);
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<string | undefined>(undefined);
   const ctrlRef = useRef<AbortController | null>(null);
   const tRef = useRef<number | null>(null);
 
-  const onChange = useCallback((v: string) => setValue(v ?? ""), []);
+  const onChange = useCallback((v: string) => {
+    console.debug("[useTypeahead] onChange called with:", v);
+    setValue(v ?? "");
+  }, []);
 
   useEffect(() => {
+    console.debug("[useTypeahead] useEffect triggered with value:", value);
     if (tRef.current) clearTimeout(tRef.current);
     if (!value.trim()) {
+      console.debug("[useTypeahead] Empty value, clearing suggestions");
       setSuggestions([]);
       setOpen(false);
       return;
     }
+    console.debug("[useTypeahead] Setting timeout for search with value:", value);
     tRef.current = window.setTimeout(async () => {
       if (ctrlRef.current) ctrlRef.current.abort();
       const ctrl = new AbortController();
       ctrlRef.current = ctrl;
       setLoading(true);
-      setError(null);
+      setError(undefined);
       try {
         const items = await fetchFn(value, ctrl.signal);
+        console.log("[useTypeahead] Received items count:", items.length);
+        console.log("[useTypeahead] Received items:", items);
         setSuggestions(items);
         setOpen(items.length > 0);
-      } catch (e: any) {
-        if (e?.name !== "AbortError") {
-          setError(e?.message || "Typeahead failed");
+        console.log("[useTypeahead] Updated suggestions state, open:", items.length > 0);
+      } catch (e: unknown) {
+        const error = e as Error;
+        if (error?.name !== "AbortError") {
+          setError(error?.message || "Typeahead failed");
           setSuggestions([]);
           setOpen(false);
         }
