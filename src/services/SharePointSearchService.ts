@@ -6,6 +6,7 @@ export interface SuggestionItem {
   suggestionTitle: string;
   suggestionSubtitle: string;
   path: string;
+  fileType?: string;
   icon?: string;
 }
 
@@ -115,7 +116,8 @@ export class SharePointSearchService {
           id: (props.Path as string) || (props.UniqueId as string) || `suggestion-${index}-${Date.now()}`,
           suggestionTitle: title,
           suggestionSubtitle: subtitleParts.join(" · "),
-          path: (props.Path as string) || ""
+          path: (props.Path as string) || "",
+          fileType: (props.FileType as string) || ""
         } as SuggestionItem;
       } catch (error) {
         console.error(`[SharePoint Search API] Error processing row ${index}:`, error);
@@ -123,7 +125,8 @@ export class SharePointSearchService {
           id: `error-${index}`,
           suggestionTitle: `Error processing item ${index}`,
           suggestionSubtitle: "Error occurred",
-          path: ""
+          path: "",
+          fileType: ""
         } as SuggestionItem;
       }
     });

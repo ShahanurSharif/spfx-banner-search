@@ -34,6 +34,24 @@ import type { ISpfxBannerSearchProps } from './ISpfxBannerSearchProps';
 // import { SearchBox } from '@fluentui/react/lib/SearchBox'; // Temporarily commented out for testing
 import { ThemeProvider } from '@fluentui/react/lib/Theme';
 import { Icon } from '@fluentui/react/lib/Icon';
+
+// Helper function to get file type icon
+const getFileTypeIcon = (fileType: string): string => {
+  const lowerType = fileType?.toLowerCase() || '';
+  switch (lowerType) {
+    case 'pdf': return 'PDF';
+    case 'doc':
+    case 'docx': return 'WordDocument';
+    case 'xls':
+    case 'xlsx': return 'ExcelDocument';
+    case 'ppt':
+    case 'pptx': return 'PowerPointDocument';
+    case 'txt': return 'TextDocument';
+    case 'html':
+    case 'htm': return 'FileHTML';
+    default: return 'Page';
+  }
+};
 import AISearch from './AISearch';
 // ...existing code...
 import { WebPartContext } from '@microsoft/sp-webpart-base';
@@ -274,6 +292,10 @@ const HeroSearchBox: React.FC<{
                 backgroundColor: index === highlightedIndex ? '#f0f0f0' : 'white'
               }}
             >
+              <Icon
+                iconName={getFileTypeIcon(item.fileType || '')}
+                className={styles.fileIcon}
+              />
               <div className={styles.suggestionText} style={{ color: '#333' }}>
                 <div className={styles.suggestionTitle} style={{ fontWeight: 'bold', marginBottom: '4px' }}>
                   {item.suggestionTitle}

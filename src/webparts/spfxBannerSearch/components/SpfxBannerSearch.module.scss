@@ -160,15 +160,17 @@
   width: 100%;
   max-width: 800px; // Increased from 600px
   margin: 0 auto;
+  box-sizing: border-box;
   
   // Full bleed mode - make search container wider
   :global(.CanvasSection.CanvasSection--fullBleed) & {
-    max-width: 100%; // Use 90% of viewport in full bleed mode
+    max-width: 800px; // Fixed width instead of 100%
   }
 }
 
 .heroSearchBox {
-  width: 100%;
+  width: 100% !important;
+  max-width: 100% !important;
   height: 30px;
   border: none;
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
@@ -176,6 +178,7 @@
   padding: 0 5px 0 5px;
   background: rgba(255, 255, 255, 0.95);
   backdrop-filter: blur(10px);
+  box-sizing: border-box;
 
   // Input field styling
   :global(.ms-SearchBox-field) {
@@ -255,25 +258,29 @@
   top: 100%;
   left: 0;
   right: 0;
-  background: rgba(255, 255, 255, 0.85);
+  width: 100%;
+  max-width: 100%;
+  background: rgba(255, 255, 255, 0.95);
   backdrop-filter: blur(20px);
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
-  margin-top: 8px;
+  margin-top: 2px;
   z-index: 1000;
   max-height: 300px;
   overflow-y: auto;
-  border: 1px solid rgba(255, 255, 255, 0.3);
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  border-radius: 4px;
+  box-sizing: border-box;
 }
 
 .suggestionItem {
-  padding: 12px 20px;
+  padding: 8px 12px;
   cursor: pointer;
   display: flex;
   align-items: center;
-  gap: 12px;
-  border-bottom: 1px solid rgba(0, 0, 0, 0.03);
+  gap: 8px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
   transition: all 0.2s ease;
-  background: rgba(255, 255, 255, 0.1);
+  background: transparent;
   
   &:last-child {
     border-bottom: none;
@@ -281,15 +288,23 @@
   
   &:hover,
   &.highlighted {
-    background: rgba(0, 120, 212, 0.15);
-    backdrop-filter: blur(8px);
-    transform: translateX(4px);
+    background: rgba(0, 120, 212, 0.1);
+    backdrop-filter: none;
+    transform: none;
+  }
+  
+  .fileIcon {
+    width: 16px;
+    height: 16px;
+    flex-shrink: 0;
+    color: #0078d4 !important;
   }
   
   .suggestionText {
     flex: 1;
     color: #323130;
     font-size: 14px;
+    text-align: left;
     
     .suggestionTitle {
       font-weight: 500;
@@ -297,6 +312,7 @@
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
+      text-align: left;
     }
     
     .suggestionSubtitle {
@@ -307,6 +323,7 @@
       overflow: hidden;
       text-overflow: ellipsis;
       line-height: 1.2;
+      text-align: left;
     }
   }
 }
