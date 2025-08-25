@@ -17,6 +17,15 @@ import { PropertyFieldColorPicker, PropertyFieldColorPickerStyle } from '@pnp/sp
 // Import package.json for version information
 const packageInfo = require('../../../package.json');
 
+// Interface for extensibility libraries
+export interface ExtensibilityLibrary {
+  id: string;
+  name: string;
+  purpose: string;
+  manifestGuid: string;
+  enabled: boolean;
+}
+
 import * as strings from 'SpfxBannerSearchWebPartStrings';
 import SpfxBannerSearch from './components/SpfxBannerSearch';
 import { ISpfxBannerSearchProps } from './components/ISpfxBannerSearchProps';
@@ -62,6 +71,9 @@ export interface ISpfxBannerSearchWebPartProps {
   searchProperty: string;
   
   // About and settings configuration - panels now handled natively
+  
+  // Extensibility libraries configuration
+  extensibilityLibraries: string; // JSON string of ExtensibilityLibrary[]
   
   // Redirect configuration
   redirectToSearchPage: boolean;
@@ -284,6 +296,210 @@ export default class SpfxBannerSearchWebPart extends BaseClientSideWebPart<ISpfx
     this._createExtensibilityPanel();
   }
 
+  // Get extensibility libraries from properties or create defaults
+  private _getExtensibilityLibraries(): ExtensibilityLibrary[] {
+    try {
+      if (this.properties.extensibilityLibraries) {
+        return JSON.parse(this.properties.extensibilityLibraries);
+      }
+    } catch (error) {
+      console.warn('Failed to parse extensibilityLibraries:', error);
+    }
+    
+    // Return default libraries
+    return [
+      {
+        id: '1',
+        name: 'PnP Modern Search Extensibility',
+        purpose: 'Custom result layouts and refiners',
+        manifestGuid: '4588a19c-6c21-4f42-9bb6-9a7a3b62b1fa',
+        enabled: true
+      },
+      {
+        id: '2',
+        name: 'Advanced Query Builders',
+        purpose: 'Enhanced search query construction',
+        manifestGuid: 'b2c3d4e5-f6g7-8901-bcde-f23456789012',
+        enabled: false
+      }
+    ];
+  }
+
+  // Save extensibility libraries to properties
+  private _saveExtensibilityLibraries(libraries: ExtensibilityLibrary[]): void {
+    this.properties.extensibilityLibraries = JSON.stringify(libraries);
+    this.context.propertyPane.refresh();
+  }
+
+  // HTML escape function for security
+  private _escapeHtml(text: string): string {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+  }
+
+  // Setup global actions for extensibility panel
+  private _setupExtensibilityActions(): void {
+    const self = this;
+    
+    (window as any).spfxExtensibilityActions = {
+      toggleLibrary: (index: number, enabled: boolean) => {
+        const libraries = self._getExtensibilityLibraries();
+        if (libraries[index]) {
+          libraries[index].enabled = enabled;
+          self._currentExtensibilityLibraries = libraries;
+        }
+      },
+      
+      updateLibraryName: (index: number, name: string) => {
+        const libraries = self._getExtensibilityLibraries();
+        if (libraries[index]) {
+          libraries[index].name = name;
+          self._currentExtensibilityLibraries = libraries;
+        }
+      },
+      
+      updateLibraryPurpose: (index: number, purpose: string) => {
+        const libraries = self._getExtensibilityLibraries();
+        if (libraries[index]) {
+          libraries[index].purpose = purpose;
+          self._currentExtensibilityLibraries = libraries;
+        }
+      },
+      
+      updateLibraryGuid: (index: number, guid: string) => {
+        const libraries = self._getExtensibilityLibraries();
+        if (libraries[index]) {
+          libraries[index].manifestGuid = guid;
+          self._currentExtensibilityLibraries = libraries;
+        }
+      },
+      
+      removeLibrary: (index: number) => {
+        const libraries = self._currentExtensibilityLibraries || self._getExtensibilityLibraries();
+        libraries.splice(index, 1);
+        self._currentExtensibilityLibraries = libraries;
+        self._updateLibrariesContainer();
+      },
+      
+      addNewLibrary: () => {
+        const libraries = self._currentExtensibilityLibraries || self._getExtensibilityLibraries();
+        const newId = (Math.max(...libraries.map(lib => parseInt(lib.id) || 0)) + 1).toString();
+        libraries.push({
+          id: newId,
+          name: '',
+          purpose: '',
+          manifestGuid: '',
+          enabled: false
+        });
+        self._currentExtensibilityLibraries = libraries;
+        self._updateLibrariesContainer();
+      },
+      
+      saveLibraries: () => {
+        const libraries = self._currentExtensibilityLibraries || self._getExtensibilityLibraries();
+        self._saveExtensibilityLibraries(libraries);
+        self._currentExtensibilityLibraries = null;
+        alert('Extensibility libraries configuration saved successfully!');
+        document.getElementById('extensibility-panel-overlay')?.remove();
+      },
+      
+      resetToDefaults: () => {
+        if (confirm('Are you sure you want to reset to default libraries? This will remove all custom configurations.')) {
+          self._currentExtensibilityLibraries = [
+            {
+              id: '1',
+              name: 'PnP Modern Search Extensibility',
+              purpose: 'Custom result layouts and refiners',
+              manifestGuid: '4588a19c-6c21-4f42-9bb6-9a7a3b62b1fa',
+              enabled: true
+            },
+            {
+              id: '2',
+              name: 'Advanced Query Builders',
+              purpose: 'Enhanced search query construction',
+              manifestGuid: 'b2c3d4e5-f6g7-8901-bcde-f23456789012',
+              enabled: false
+            }
+          ];
+          self._updateLibrariesContainer();
+        }
+      }
+    };
+  }
+
+  // Temporary storage for unsaved changes
+  private _currentExtensibilityLibraries: ExtensibilityLibrary[] | null = null;
+
+  // Update libraries container without flickering
+  private _updateLibrariesContainer(): void {
+    const container = document.getElementById('libraries-container');
+    if (container) {
+      const libraries = this._currentExtensibilityLibraries || this._getExtensibilityLibraries();
+      container.innerHTML = this._generateLibrariesHTML(libraries);
+    }
+  }
+
+  // Generate libraries HTML with Fluent UI components
+  private _generateLibrariesHTML(libraries: ExtensibilityLibrary[]): string {
+    return libraries.map((lib, index) => `
+      <div style="margin-bottom: 20px; padding: 16px; border: 1px solid #edebe9; border-radius: 4px; background: #faf9f8;">
+        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px;">
+          <h4 style="margin: 0; color: #323130; font-size: 16px; font-weight: 600; font-family: 'Segoe UI', sans-serif;">Library ${index + 1}</h4>
+          <label style="display: flex; align-items: center; cursor: pointer;">
+            <input type="checkbox" id="lib-enabled-${index}" ${lib.enabled ? 'checked' : ''} style="margin-right: 8px;" onchange="window.spfxExtensibilityActions.toggleLibrary(${index}, this.checked);">
+            <span style="font-size: 14px; color: #323130; font-family: 'Segoe UI', sans-serif;">Enabled</span>
+          </label>
+        </div>
+        
+        <!-- Name/Purpose Field with Fluent UI styling -->
+        <div style="margin-bottom: 12px;">
+          <label class="ms-Label" style="display: block; margin-bottom: 4px; font-size: 14px; font-weight: 600; color: #323130; font-family: 'Segoe UI', sans-serif;">Name/Purpose:</label>
+          <div class="ms-TextField">
+            <input type="text" id="lib-name-${index}" value="${this._escapeHtml(lib.name)}" placeholder="Enter library name and purpose" 
+                   class="ms-TextField-field" 
+                   style="width: calc(100% - 24px); padding: 8px 12px; border: 1px solid #8a8886; border-radius: 2px; font-size: 14px; font-family: 'Segoe UI', sans-serif; background: #ffffff;" 
+                   onchange="window.spfxExtensibilityActions.updateLibraryName(${index}, this.value);"
+                   onfocus="this.style.borderColor='#0078d4'; this.style.boxShadow='0 0 0 1px #0078d4';"
+                   onblur="this.style.borderColor='#8a8886'; this.style.boxShadow='none';">
+          </div>
+        </div>
+        
+        <!-- Purpose Description Field with Fluent UI styling -->
+        <div style="margin-bottom: 12px;">
+          <label class="ms-Label" style="display: block; margin-bottom: 4px; font-size: 14px; font-weight: 600; color: #323130; font-family: 'Segoe UI', sans-serif;">Purpose Description:</label>
+          <div class="ms-TextField">
+            <input type="text" id="lib-purpose-${index}" value="${this._escapeHtml(lib.purpose)}" placeholder="Describe what this library does" 
+                   class="ms-TextField-field"
+                   style="width: calc(100% - 24px); padding: 8px 12px; border: 1px solid #8a8886; border-radius: 2px; font-size: 14px; font-family: 'Segoe UI', sans-serif; background: #ffffff;" 
+                   onchange="window.spfxExtensibilityActions.updateLibraryPurpose(${index}, this.value);"
+                   onfocus="this.style.borderColor='#0078d4'; this.style.boxShadow='0 0 0 1px #0078d4';"
+                   onblur="this.style.borderColor='#8a8886'; this.style.boxShadow='none';">
+          </div>
+        </div>
+        
+        <!-- Manifest GUID Field with Fluent UI styling -->
+        <div style="margin-bottom: 12px;">
+          <label class="ms-Label" style="display: block; margin-bottom: 4px; font-size: 14px; font-weight: 600; color: #323130; font-family: 'Segoe UI', sans-serif;">Manifest GUID:</label>
+          <div class="ms-TextField">
+            <input type="text" id="lib-guid-${index}" value="${this._escapeHtml(lib.manifestGuid)}" placeholder="e.g., 4588a19c-6c21-4f42-9bb6-9a7a3b62b1fa" 
+                   class="ms-TextField-field"
+                   style="width: calc(100% - 24px); padding: 8px 12px; border: 1px solid #8a8886; border-radius: 2px; font-size: 14px; font-family: 'Segoe UI Mono', monospace; background: #ffffff;" 
+                   onchange="window.spfxExtensibilityActions.updateLibraryGuid(${index}, this.value);"
+                   onfocus="this.style.borderColor='#0078d4'; this.style.boxShadow='0 0 0 1px #0078d4';"
+                   onblur="this.style.borderColor='#8a8886'; this.style.boxShadow='none';">
+          </div>
+        </div>
+        
+        <div style="text-align: right;">
+          <button type="button" class="ms-Button ms-Button--default" style="background: #d13438 !important; border: 1px solid #d13438 !important; color: white !important; padding: 6px 12px !important; font-size: 12px !important; border-radius: 2px !important; cursor: pointer !important; font-family: 'Segoe UI', sans-serif !important;" onclick="window.spfxExtensibilityActions.removeLibrary(${index});">
+            <span class="ms-Button-label" style="font-weight: 400 !important;">Remove</span>
+          </button>
+        </div>
+      </div>
+    `).join('');
+  }
+
   private _showSettingsPanel(): void {
     this._createSettingsPanel();
   }
@@ -291,6 +507,9 @@ export default class SpfxBannerSearchWebPart extends BaseClientSideWebPart<ISpfx
   private _createExtensibilityPanel(): void {
     // Remove existing panel if any
     this._removePanel('extensibility-panel');
+
+    // Get current libraries or create default ones
+    const libraries = this._getExtensibilityLibraries();
 
     // Create panel overlay
     const overlay = document.createElement('div');
@@ -302,66 +521,83 @@ export default class SpfxBannerSearchWebPart extends BaseClientSideWebPart<ISpfx
     const panel = document.createElement('div');
     panel.id = 'extensibility-panel';
     panel.className = 'ms-Panel ms-Panel--medium ms-Panel--right';
-    panel.style.cssText = 'position: fixed; top: 0; right: 0; width: 340px; height: 100%; z-index: 1001; background: white; box-shadow: -6px 0 12px rgba(0,0,0,0.15);';
+    panel.style.cssText = 'position: fixed; top: 0; right: 0; width: 600px; height: 100%; background: white; box-shadow: 0 0 20px rgba(0,0,0,0.3); z-index: 1001;';
 
-    // Panel content
+    // Generate libraries HTML using the new method
+    const librariesHTML = this._generateLibrariesHTML(libraries);
+
+    // Panel content with proper scrolling structure
     panel.innerHTML = `
-      <div class="ms-Panel-main">
-        <div class="ms-Panel-commands">
-          <button type="button" class="ms-Panel-closeButton ms-PanelAction-close" onclick="document.getElementById('extensibility-panel-overlay').remove();" style="border: none; background: transparent; padding: 8px; cursor: pointer;">
+      <div class="ms-Panel-main" style="display: flex; flex-direction: column; height: 100%;">
+        <div class="ms-Panel-commands" style="flex-shrink: 0;">
+          <button type="button" class="ms-Panel-closeButton ms-PanelAction-close" style="border: none; background: transparent; padding: 8px; cursor: pointer;" onclick="document.getElementById('extensibility-panel-overlay').remove();">
             <span class="ms-Icon ms-Icon--Cancel" style="font-size: 16px; color: #605e5c;">✕</span>
           </button>
         </div>
-        <div class="ms-Panel-contentInner">
-          <div class="ms-Panel-header">
-            <p class="ms-Panel-headerText" style="font-size: 20px !important; font-weight: 600 !important; margin: 0 !important; padding: 20px 24px 0 24px !important; color: #323130 !important; font-family: 'Segoe UI', 'Segoe UI Web (West European)', 'Segoe UI', -apple-system, BlinkMacSystemFont, 'Roboto', 'Helvetica Neue', sans-serif !important;">Extensibility Libraries to Load</p>
+        <div class="ms-Panel-contentInner" style="flex: 1; display: flex; flex-direction: column; overflow: hidden;">
+          <div class="ms-Panel-header" style="flex-shrink: 0;">
+            <p class="ms-Panel-headerText" style="font-size: 20px !important; font-weight: 600 !important; margin: 0 !important; padding: 20px 24px 0 24px !important; color: #323130 !important; font-family: 'Segoe UI', 'Segoe UI Web (West European)', 'Segoe UI', -apple-system, BlinkMacSystemFont, 'Roboto', 'Helvetica Neue', sans-serif !important;">Configure Extensibility Libraries</p>
           </div>
-          <div class="ms-Panel-scrollableContent">
+          <div class="ms-Panel-scrollableContent" style="flex: 1; overflow-y: auto; overflow-x: hidden; scrollbar-width: thin; scrollbar-color: #c8c6c4 #f3f2f1;">
             <div class="ms-Panel-content" style="padding: 20px 24px;">
-              <h3 style="font-size: 16px !important; font-weight: 600 !important; margin-bottom: 16px !important; color: #323130 !important; font-family: 'Segoe UI', 'Segoe UI Web (West European)', 'Segoe UI', -apple-system, BlinkMacSystemFont, 'Roboto', 'Helvetica Neue', sans-serif !important;">Available Libraries</h3>
-              <div style="margin: 16px 0;">
-                <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px; border: 1px solid #edebe9; border-radius: 2px; margin-bottom: 8px; background: #faf9f8;">
-                  <div>
-                    <strong style="font-size: 14px; color: #323130;">PnP Modern Search Extensibility</strong><br>
-                    <small style="color: #605e5c; font-size: 12px;">Custom result layouts and refiners</small><br>
-                    <code style="font-size: 11px; color: #605e5c; background: #f3f2f1; padding: 2px 4px; border-radius: 2px;">a1b2c3d4-e5f6-7890-abcd-ef1234567890</code>
-                  </div>
-                  <label class="ms-Toggle" style="margin-left: 16px;">
-                    <input type="checkbox" checked />
-                    <span class="ms-Toggle-slider"></span>
-                  </label>
-                </div>
-                <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px; border: 1px solid #edebe9; border-radius: 2px; margin-bottom: 8px; background: #faf9f8;">
-                  <div>
-                    <strong style="font-size: 14px; color: #323130;">Advanced Query Builders</strong><br>
-                    <small style="color: #605e5c; font-size: 12px;">Custom query construction tools</small><br>
-                    <code style="font-size: 11px; color: #605e5c; background: #f3f2f1; padding: 2px 4px; border-radius: 2px;">b2c3d4e5-f6g7-8901-bcde-f23456789012</code>
-                  </div>
-                  <label class="ms-Toggle" style="margin-left: 16px;">
-                    <input type="checkbox" />
-                    <span class="ms-Toggle-slider"></span>
-                  </label>
-                </div>
+              <p style="margin-bottom: 20px; color: #605e5c; font-size: 14px; font-family: 'Segoe UI', sans-serif;">
+                Configure extensibility libraries that will be loaded with your search web part. These libraries can extend functionality with custom layouts, data sources, and search enhancements.
+              </p>
+              <div id="libraries-container" style="margin-bottom: 20px;">
+                ${librariesHTML}
               </div>
-              <div style="margin-top: 24px; border-top: 1px solid #edebe9; padding-top: 16px;">
-                <button type="button" class="ms-Button ms-Button--primary" style="margin-right: 8px; background: #0078d4 !important; border: 1px solid #0078d4 !important; color: white !important; padding: 8px 16px !important; font-size: 14px !important; font-family: 'Segoe UI', 'Segoe UI Web (West European)', 'Segoe UI', -apple-system, BlinkMacSystemFont, 'Roboto', 'Helvetica Neue', sans-serif !important; border-radius: 2px !important; cursor: pointer !important;" onclick="alert('Apply clicked - functionality can be implemented here');">
-                  <span class="ms-Button-label" style="font-weight: 400 !important;">Apply Changes</span>
-                </button>
-                <button type="button" class="ms-Button" style="background: transparent !important; border: 1px solid #8a8886 !important; color: #323130 !important; padding: 8px 16px !important; font-size: 14px !important; font-family: 'Segoe UI', 'Segoe UI Web (West European)', 'Segoe UI', -apple-system, BlinkMacSystemFont, 'Roboto', 'Helvetica Neue', sans-serif !important; border-radius: 2px !important; cursor: pointer !important;" onclick="document.getElementById('extensibility-panel-overlay').remove();">
-                  <span class="ms-Button-label" style="font-weight: 400 !important;">Cancel</span>
+              <div style="margin: 20px 0; text-align: center; padding: 16px 0; border-top: 1px solid #f3f2f1;">
+                <button type="button" class="ms-Button ms-Button--primary" style="background: #0078d4 !important; border: 1px solid #0078d4 !important; color: white !important; padding: 8px 16px !important; font-size: 14px !important; border-radius: 2px !important; cursor: pointer !important; font-family: 'Segoe UI', sans-serif !important;" onclick="window.spfxExtensibilityActions.addNewLibrary();">
+                  <span style="font-weight: 400 !important;">+ Add New Library</span>
                 </button>
               </div>
+            </div>
+          </div>
+          <div class="ms-Panel-footer" style="flex-shrink: 0; border-top: 1px solid #edebe9; padding: 16px 24px; background: #faf9f8;">
+            <div style="display: flex; gap: 8px; justify-content: flex-end;">
+              <button type="button" class="ms-Button ms-Button--primary" style="background: #0078d4 !important; border: 1px solid #0078d4 !important; color: white !important; padding: 8px 16px !important; font-size: 14px !important; border-radius: 2px !important; cursor: pointer !important; font-family: 'Segoe UI', sans-serif !important;" onclick="window.spfxExtensibilityActions.saveLibraries();">
+                <span style="font-weight: 400 !important;">Apply Changes</span>
+              </button>
+              <button type="button" class="ms-Button" style="background: transparent !important; border: 1px solid #8a8886 !important; color: #323130 !important; padding: 8px 16px !important; font-size: 14px !important; border-radius: 2px !important; cursor: pointer !important; font-family: 'Segoe UI', sans-serif !important;" onclick="document.getElementById('extensibility-panel-overlay').remove();">
+                <span style="font-weight: 400 !important;">Cancel</span>
+              </button>
+              <button type="button" class="ms-Button" style="background: transparent !important; border: 1px solid #8a8886 !important; color: #323130 !important; padding: 8px 16px !important; font-size: 14px !important; border-radius: 2px !important; cursor: pointer !important; font-family: 'Segoe UI', sans-serif !important;" onclick="window.spfxExtensibilityActions.resetToDefaults();">
+                <span style="font-weight: 400 !important;">Reset to Defaults</span>
+              </button>
             </div>
           </div>
         </div>
       </div>
     `;
 
+    // Setup global actions for panel interactions
+    this._setupExtensibilityActions();
+
+    // Add custom scrollbar styles for WebKit browsers
+    const style = document.createElement('style');
+    style.textContent = `
+      #extensibility-panel .ms-Panel-scrollableContent::-webkit-scrollbar {
+        width: 8px;
+      }
+      #extensibility-panel .ms-Panel-scrollableContent::-webkit-scrollbar-track {
+        background: #f3f2f1;
+        border-radius: 4px;
+      }
+      #extensibility-panel .ms-Panel-scrollableContent::-webkit-scrollbar-thumb {
+        background: #c8c6c4;
+        border-radius: 4px;
+      }
+      #extensibility-panel .ms-Panel-scrollableContent::-webkit-scrollbar-thumb:hover {
+        background: #a19f9d;
+      }
+    `;
+    document.head.appendChild(style);
+
     // Add to DOM
     overlay.appendChild(panel);
     document.body.appendChild(overlay);
 
-    // Close on overlay click
+    // Close panel when clicking overlay
     overlay.addEventListener('click', (e) => {
       if (e.target === overlay) {
         overlay.remove();
