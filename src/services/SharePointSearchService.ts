@@ -159,9 +159,27 @@ export class SharePointSearchService {
         // Extract file information
         const title = (props.FileName as string) || (props.Title as string) || (props.Name as string) || (props.FileLeafRef as string) || "(untitled)";
         const when = props.LastModifiedTime ? new Date(props.LastModifiedTime as string) : null;
+        
+        // Smart site subtitle logic
+        const currentSiteUrl = (this.siteUrl || this.context.pageContext.web.absoluteUrl).toLowerCase();
+        const resultSiteUrl = ((props.SPWebUrl as string) || "").toLowerCase();
+        const siteTitle = (props.SiteTitle as string) || (props.SiteName as string) || "";
+        const fileType = (props.fileExtension as string) || (props.FileType as string) || "";
+        
+        let sitePrefix = "";
+        if (siteTitle) {
+          if (resultSiteUrl && currentSiteUrl && resultSiteUrl === currentSiteUrl) {
+            // Same site - use "On the site" prefix
+            sitePrefix = `On the site ${siteTitle}`;
+          } else {
+            // Different site - use "From {siteName}" prefix
+            sitePrefix = `From ${siteTitle}`;
+          }
+        }
+        
         const subtitleParts = [
-          (props.fileExtension as string) || (props.FileType as string) || "",
-          (props.SiteTitle as string) || (props.SiteName as string) || "",
+          fileType,
+          sitePrefix,
           when ? when.toLocaleDateString() : ""
         ].filter(Boolean);
         
