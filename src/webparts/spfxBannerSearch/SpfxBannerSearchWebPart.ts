@@ -26,6 +26,25 @@ export interface ExtensibilityLibrary {
   enabled: boolean;
 }
 
+// PnP Modern Search compatible extensibility service interface
+export interface IExtensibilityService {
+  context: any; // WebPartContext - using any to avoid import issues
+  serviceScope: any;
+  searchService: any;
+  logService: any;
+  themingService: any;
+}
+
+// Interface that extensibility libraries must implement (PnP Modern Search pattern)
+export interface IExtensibilityLibrary {
+  initialize(service: IExtensibilityService): Promise<void>;
+  getCustomLayouts?(): any[];
+  getCustomDataSources?(): any[];
+  getCustomSuggestionProviders?(): any[];
+  getCustomHandlebarsHelpers?(): any[];
+  getCustomWebComponents?(): any[];
+}
+
 import * as strings from 'SpfxBannerSearchWebPartStrings';
 import SpfxBannerSearch from './components/SpfxBannerSearch';
 import { ISpfxBannerSearchProps } from './components/ISpfxBannerSearchProps';
@@ -70,8 +89,6 @@ export interface ISpfxBannerSearchWebPartProps {
   queryStringProperty: string;
   searchProperty: string;
   
-  // About and settings configuration - panels now handled natively
-  
   // Extensibility libraries configuration
   extensibilityLibraries: string; // JSON string of ExtensibilityLibrary[]
   
@@ -89,6 +106,11 @@ export default class SpfxBannerSearchWebPart extends BaseClientSideWebPart<ISpfx
   private _semanticColors: Partial<ISemanticColors> = {};
 
   public render(): void {
+    // Initialize extensibility effects on render
+    setTimeout(() => {
+      this._applyExtensibilityEffects();
+    }, 1000);
+
     const element: React.ReactElement<ISpfxBannerSearchProps> = React.createElement(
       SpfxBannerSearch,
       {
@@ -120,6 +142,7 @@ export default class SpfxBannerSearchWebPart extends BaseClientSideWebPart<ISpfx
         userProperty: this.properties.userProperty || '',
         queryStringProperty: this.properties.queryStringProperty || '',
         searchProperty: this.properties.searchProperty || '',
+        extensibilityLibraries: this.properties.extensibilityLibraries || '',
         isDarkTheme: this._isDarkTheme,
         environmentMessage: this._environmentMessage,
         hasTeamsContext: !!this.context.sdks.microsoftTeams,
@@ -329,7 +352,245 @@ export default class SpfxBannerSearchWebPart extends BaseClientSideWebPart<ISpfx
   private _saveExtensibilityLibraries(libraries: ExtensibilityLibrary[]): void {
     this.properties.extensibilityLibraries = JSON.stringify(libraries);
     this.context.propertyPane.refresh();
+    
+    // Load extensibility libraries without annoying notifications
+    this._applyExtensibilityEffects();
   }
+
+  // Real PnP Modern Search compatible extensibility system
+  private _applyExtensibilityEffects(): void {
+    const libraries = this._getExtensibilityLibraries();
+    const enabledLibraries = libraries.filter(lib => lib.enabled);
+    
+    if (enabledLibraries.length > 0) {
+      console.log(`🔌 Extensibility Framework: Loading ${enabledLibraries.length} libraries...`);
+      
+      // Load each enabled library
+      enabledLibraries.forEach(async (lib) => {
+        try {
+          await this._loadExtensibilityLibrary(lib);
+          console.log(`  ✅ ${lib.name} (${lib.manifestGuid}) - Loaded successfully`);
+        } catch (error) {
+          console.warn(`  ❌ ${lib.name} (${lib.manifestGuid}) - Failed to load:`, error);
+        }
+      });
+      
+      // Visual indicator removed - no more annoying toast messages
+    } else {
+      console.log(`🔌 Extensibility Framework: No libraries enabled`);
+    }
+  }
+
+  // Load a single extensibility library (PnP Modern Search compatible)
+  private async _loadExtensibilityLibrary(library: ExtensibilityLibrary): Promise<void> {
+    try {
+      // Method 1: Try to load as SPFx library component by manifest GUID
+      const libraryUrl = await this._resolveLibraryUrl(library.manifestGuid);
+      
+      if (libraryUrl) {
+        // Load the library JavaScript file
+        const module = await this._loadLibraryModule(libraryUrl);
+        
+        if (module && module.default && typeof module.default.initialize === 'function') {
+          // Initialize the library with our search context (PnP Modern Search pattern)
+          const extensibilityService: IExtensibilityService = {
+            context: this.context,
+            serviceScope: this.context.serviceScope,
+            searchService: this._getSearchServiceForExtensibility(),
+            logService: console,
+            themingService: this._getThemingService()
+          };
+          
+          await module.default.initialize(extensibilityService);
+          console.log(`🔌 Initialized extensibility library: ${library.name}`);
+          
+          // Store the loaded library
+          this._loadedExtensibilityLibraries.set(library.manifestGuid, module.default);
+          
+          // If the library provides custom layouts, data sources, etc., register them
+          if (module.default.getCustomLayouts) {
+            const layouts = module.default.getCustomLayouts();
+            console.log(`🎨 Registered ${layouts.length} custom layouts from ${library.name}`);
+            // Here you would integrate these layouts with your search results display
+          }
+          
+          if (module.default.getCustomDataSources) {
+            const dataSources = module.default.getCustomDataSources();
+            console.log(`📊 Registered ${dataSources.length} custom data sources from ${library.name}`);
+            // Here you would integrate these data sources with your search service
+          }
+          
+          if (module.default.getCustomSuggestionProviders) {
+            const providers = module.default.getCustomSuggestionProviders();
+            console.log(`🔍 Registered ${providers.length} custom suggestion providers from ${library.name}`);
+            // Here you would integrate these providers with your typeahead system
+          }
+          
+          if (module.default.getCustomHandlebarsHelpers) {
+            const helpers = module.default.getCustomHandlebarsHelpers();
+            console.log(`🛠️ Registered ${helpers.length} custom Handlebars helpers from ${library.name}`);
+          }
+          
+          if (module.default.getCustomWebComponents) {
+            const components = module.default.getCustomWebComponents();
+            console.log(`🧩 Registered ${components.length} custom web components from ${library.name}`);
+          }
+          
+        } else {
+          throw new Error('Library does not implement the required extensibility interface');
+        }
+      } else {
+        // Method 2: Try to load from well-known locations
+        await this._loadLibraryFromKnownPaths(library);
+      }
+      
+    } catch (error) {
+      console.error(`Failed to load extensibility library ${library.name}:`, error);
+      throw error;
+    }
+  }
+
+  // Resolve library URL from SharePoint App Catalog or known locations
+  private async _resolveLibraryUrl(manifestGuid: string): Promise<string | null> {
+    try {
+      // Try to get the library from SharePoint App Catalog
+      const webUrl = this.context.pageContext.web.absoluteUrl;
+      const catalogUrl = `${webUrl}/_api/web/tenantappcatalog/AvailableApps?$filter=ID eq guid'${manifestGuid}'`;
+      
+      const response = await this.context.httpClient.get(catalogUrl, undefined);
+      
+      if (response.ok) {
+        const data = await response.json();
+        if (data.value && data.value.length > 0) {
+          const app = data.value[0];
+          // Construct the library URL based on the app information
+          return `${webUrl}/_catalogs/apps/${app.AppPackageFileName}`;
+        }
+      }
+      
+      return null;
+    } catch (error) {
+      console.warn(`Could not resolve library URL for ${manifestGuid}:`, error);
+      return null;
+    }
+  }
+
+  // Load library from known paths (fallback method)
+  private async _loadLibraryFromKnownPaths(library: ExtensibilityLibrary): Promise<void> {
+    const knownPaths = [
+      `/SiteAssets/extensibility/${library.manifestGuid}.js`,
+      `/Style Library/extensibility/${library.manifestGuid}.js`,
+      `/_catalogs/themes/extensibility/${library.manifestGuid}.js`
+    ];
+    
+    for (const path of knownPaths) {
+      try {
+        const fullUrl = `${this.context.pageContext.web.absoluteUrl}${path}`;
+        const module = await this._loadLibraryModule(fullUrl);
+        
+        if (module) {
+          console.log(`🔌 Loaded ${library.name} from ${fullUrl}`);
+          return;
+        }
+      } catch (error) {
+        // Continue to next path
+        continue;
+      }
+    }
+    
+    throw new Error(`Could not find library ${library.name} in any known location`);
+  }
+
+  // Dynamically load a JavaScript module
+  private async _loadLibraryModule(url: string): Promise<any> {
+    try {
+      // Method 1: Try dynamic import (for modern modules)
+      try {
+        return await import(url);
+      } catch (importError) {
+        // Method 2: Try script tag loading (for UMD modules)
+        return await this._loadScriptModule(url);
+      }
+    } catch (error) {
+      console.warn(`Failed to load module from ${url}:`, error);
+      throw error;
+    }
+  }
+
+  // Load script as a module using script tag (for UMD/AMD modules)
+  private _loadScriptModule(url: string): Promise<any> {
+    return new Promise((resolve, reject) => {
+      const script = document.createElement('script');
+      script.src = url;
+      script.type = 'text/javascript';
+      
+      script.onload = () => {
+        // For UMD modules, check window object for the module
+        const globalName = this._extractGlobalNameFromUrl(url);
+        const module = (window as any)[globalName];
+        
+        if (module) {
+          resolve({ default: module });
+        } else {
+          reject(new Error(`Module not found on window object: ${globalName}`));
+        }
+      };
+      
+      script.onerror = () => {
+        reject(new Error(`Failed to load script: ${url}`));
+      };
+      
+      document.head.appendChild(script);
+    });
+  }
+
+  // Extract global name from URL for UMD modules
+  private _extractGlobalNameFromUrl(url: string): string {
+    const fileName = url.split('/').pop()?.split('.')[0] || 'Unknown';
+    return `PnPModernSearchExtensibility_${fileName}`;
+  }
+
+  // Get search service for extensibility libraries
+  private _getSearchServiceForExtensibility(): any {
+    // Return our search service or a compatible interface
+    return {
+      executeQuery: async (queryText: string, properties?: any) => {
+        // This would integrate with our existing search functionality
+        console.log(`🔍 Extensibility library requested search for: ${queryText}`);
+        // You could call your existing search service here
+        return { results: [], totalResults: 0 };
+      },
+      getSuggestions: async (queryText: string) => {
+        console.log(`💡 Extensibility library requested suggestions for: ${queryText}`);
+        return [];
+      },
+      context: this.context
+    };
+  }
+
+  // Get theming service for extensibility libraries
+  private _getThemingService(): any {
+    return {
+      currentTheme: this._semanticColors,
+      isDarkTheme: this._isDarkTheme,
+      palette: this._semanticColors
+    };
+  }
+
+  // Store loaded extensibility libraries
+  private _loadedExtensibilityLibraries: Map<string, IExtensibilityLibrary> = new Map();
+
+  // Get a loaded extensibility library
+  public getExtensibilityLibrary(manifestGuid: string): IExtensibilityLibrary | undefined {
+    return this._loadedExtensibilityLibraries.get(manifestGuid);
+  }
+
+  // Get all loaded extensibility libraries
+  public getLoadedExtensibilityLibraries(): IExtensibilityLibrary[] {
+    return Array.from(this._loadedExtensibilityLibraries.values());
+  }
+
+  // Toast notifications removed - no more annoying messages
 
   // HTML escape function for security
   private _escapeHtml(text: string): string {

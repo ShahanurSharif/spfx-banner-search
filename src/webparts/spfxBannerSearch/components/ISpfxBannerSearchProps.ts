@@ -42,6 +42,9 @@ export interface ISpfxBannerSearchProps {
   
   // About and settings configuration - panels now handled natively in web part
   
+  // Extensibility libraries configuration
+  extensibilityLibraries: string;
+  
   // SPFx context and theme
   isDarkTheme: boolean;
   environmentMessage: string;
