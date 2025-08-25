@@ -72,7 +72,7 @@ export class SharePointSearchService {
       queryText = encodeURIComponent(`${term.trim()}*`);
     }
     
-    const selectProperties = encodeURIComponent("Title,Path,Author,LastModifiedTime,FileType,SiteName,SPWebUrl,HitHighlightedSummary,FileName,Name,FileLeafRef");
+    const selectProperties = encodeURIComponent("Title,Path,Author,LastModifiedTime,FileType,SiteName,SPWebUrl,HitHighlightedSummary,FileName,Name,FileLeafRef,fileExtension,SiteTitle");
     
     // Match the exact format from the working version, using the provided limit
     const url = `${baseUrl}/_api/search/query?querytext='${queryText}'&selectproperties='${selectProperties}'&rowlimit=${limit}&trimduplicates=true`;
@@ -160,8 +160,8 @@ export class SharePointSearchService {
         const title = (props.FileName as string) || (props.Title as string) || (props.Name as string) || (props.FileLeafRef as string) || "(untitled)";
         const when = props.LastModifiedTime ? new Date(props.LastModifiedTime as string) : null;
         const subtitleParts = [
-          (props.FileType as string) || "",
-          (props.SiteName as string) || "",
+          (props.fileExtension as string) || (props.FileType as string) || "",
+          (props.SiteTitle as string) || (props.SiteName as string) || "",
           when ? when.toLocaleDateString() : ""
         ].filter(Boolean);
         
@@ -170,7 +170,7 @@ export class SharePointSearchService {
           suggestionTitle: title,
           suggestionSubtitle: subtitleParts.join(" · "),
           path: (props.Path as string) || "",
-          fileType: (props.FileType as string) || ""
+          fileType: (props.fileExtension as string) || (props.FileType as string) || ""
         } as SuggestionItem;
       } catch (error) {
         console.error(`[SharePoint Search API] Error processing row ${index}:`, error);
