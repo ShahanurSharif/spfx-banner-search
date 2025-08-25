@@ -28,7 +28,7 @@
  */
 
 import * as React from 'react';
-import { useState, useCallback, useMemo } from 'react';
+import { useState, useCallback, useMemo, useEffect } from 'react';
 import styles from './SpfxBannerSearch.module.scss';
 import type { ISpfxBannerSearchProps } from './ISpfxBannerSearchProps';
 // import { SearchBox } from '@fluentui/react/lib/SearchBox'; // Temporarily commented out for testing
@@ -128,13 +128,77 @@ const HeroSearchBox: React.FC<{
   imageRelativeUrl: string;
   searchBoxBorderRadius: number;
   searchBoxHeight: number;
+  useDynamicDataSource: boolean;
+  dynamicDataSourceId: string;
+  pageEnvironmentProperty: string;
+  siteProperty: string;
+  userProperty: string;
+  queryStringProperty: string;
+  searchProperty: string;
   semanticColors: Partial<import('@fluentui/react/lib/Styling').ISemanticColors>;
   context: WebPartContext;
   searchSiteUrl?: string;
   debugSuggestions?: boolean;
-}> = React.memo(({ placeholder, onSearch, enableSuggestions, suggestionsLimit, openingBehavior, enableQuerySuggestions, staticSuggestions, enableZeroTermSuggestions, zeroTermSuggestions, suggestionsProvider, hubSiteId, imageRelativeUrl, searchBoxBorderRadius, searchBoxHeight, semanticColors, context, searchSiteUrl, debugSuggestions }) => {
+}> = React.memo(({ placeholder, onSearch, enableSuggestions, suggestionsLimit, openingBehavior, enableQuerySuggestions, staticSuggestions, enableZeroTermSuggestions, zeroTermSuggestions, suggestionsProvider, hubSiteId, imageRelativeUrl, searchBoxBorderRadius, searchBoxHeight, useDynamicDataSource, dynamicDataSourceId, pageEnvironmentProperty, siteProperty, userProperty, queryStringProperty, searchProperty, semanticColors, context, searchSiteUrl, debugSuggestions }) => {
   console.debug("[HeroSearchBox] Component is rendering with props:", { placeholder, enableSuggestions });
   const service = useMemo(() => new SharePointSearchService(context, searchSiteUrl, debugSuggestions), [context, searchSiteUrl, debugSuggestions]);
+
+  // Dynamic data source function
+  const getDynamicDataValue = useCallback((): string => {
+    if (!useDynamicDataSource || dynamicDataSourceId !== 'pageEnvironment') {
+      return '';
+    }
+
+    switch (pageEnvironmentProperty) {
+      case 'siteProperties':
+        switch (siteProperty) {
+          case 'siteUrl':
+            return context.pageContext.web.absoluteUrl;
+          case 'siteCollectionUrl':
+            return context.pageContext.site.absoluteUrl;
+          case 'siteTitle':
+            return context.pageContext.web.title;
+          case 'siteId':
+            return context.pageContext.site.id.toString();
+          case 'webId':
+            return context.pageContext.web.id.toString();
+          case 'hubSiteId':
+            // Note: hubSiteId is not available in basic pageContext, would need Graph API call
+            return '';
+          default:
+            return '';
+        }
+      case 'currentUser':
+        switch (userProperty) {
+          case 'loginName':
+            return context.pageContext.user.loginName;
+          case 'displayName':
+            return context.pageContext.user.displayName;
+          case 'email':
+            return context.pageContext.user.email;
+          case 'userId':
+            return context.pageContext.user.loginName; // Use loginName as userId
+          case 'department':
+            return ''; // Not available in basic page context
+          case 'jobTitle':
+            return ''; // Not available in basic page context
+          default:
+            return '';
+        }
+      case 'queryString':
+        if (queryStringProperty) {
+          const urlParams = new URLSearchParams(window.location.search);
+          return urlParams.get(queryStringProperty) || '';
+        }
+        return '';
+      case 'search':
+        // This would typically come from connected search web parts
+        // For now, return empty as it requires more complex implementation
+        return '';
+      default:
+        return '';
+    }
+  }, [useDynamicDataSource, dynamicDataSourceId, pageEnvironmentProperty, siteProperty, userProperty, queryStringProperty, searchProperty, context]);
   
   // Create zero-term suggestions
   const zeroTermSuggestionsItems = useMemo(() => {
@@ -183,6 +247,17 @@ const HeroSearchBox: React.FC<{
     setOpen: setShowSuggestions,
     setSuggestions
   } = useTypeahead(fetchFn, 250, suggestionsLimit, zeroTermSuggestionsItems);
+
+  // Auto-populate search box with dynamic data
+  useEffect(() => {
+    if (useDynamicDataSource && pageEnvironmentProperty && (siteProperty || userProperty || queryStringProperty || searchProperty)) {
+      const dynamicValue = getDynamicDataValue();
+      if (dynamicValue && dynamicValue !== searchValue) {
+        console.debug("[HeroSearchBox] Auto-populating with dynamic data:", dynamicValue);
+        onChange(dynamicValue);
+      }
+    }
+  }, [useDynamicDataSource, pageEnvironmentProperty, siteProperty, userProperty, queryStringProperty, searchProperty, getDynamicDataValue, onChange, searchValue]);
   
   // Use the open state from useTypeahead hook
   const showSuggestions = suggestionsOpen;
@@ -461,6 +536,13 @@ const SpfxBannerSearch: React.FC<ISpfxBannerSearchProps> = (props) => {
                 imageRelativeUrl={props.imageRelativeUrl}
                 searchBoxBorderRadius={props.searchBoxBorderRadius}
                 searchBoxHeight={props.searchBoxHeight}
+                useDynamicDataSource={props.useDynamicDataSource}
+                dynamicDataSourceId={props.dynamicDataSourceId}
+                pageEnvironmentProperty={props.pageEnvironmentProperty}
+                siteProperty={props.siteProperty}
+                userProperty={props.userProperty}
+                queryStringProperty={props.queryStringProperty}
+                searchProperty={props.searchProperty}
                 semanticColors={semanticColors}
                 context={context}
                 searchSiteUrl={props.searchSiteUrl}

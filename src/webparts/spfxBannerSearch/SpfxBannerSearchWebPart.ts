@@ -48,6 +48,15 @@ export interface ISpfxBannerSearchWebPartProps {
   hubSiteId: string;
   imageRelativeUrl: string;
   
+  // Dynamic data source configuration
+  useDynamicDataSource: boolean;
+  dynamicDataSourceId: string;
+  pageEnvironmentProperty: string;
+  siteProperty: string;
+  userProperty: string;
+  queryStringProperty: string;
+  searchProperty: string;
+  
   // Redirect configuration
   redirectToSearchPage: boolean;
   searchPageUrl: string;
@@ -86,6 +95,13 @@ export default class SpfxBannerSearchWebPart extends BaseClientSideWebPart<ISpfx
         suggestionsProvider: this.properties.suggestionsProvider || 'static',
         hubSiteId: this.properties.hubSiteId || '',
         imageRelativeUrl: this.properties.imageRelativeUrl || '',
+        useDynamicDataSource: this.properties.useDynamicDataSource !== false,
+        dynamicDataSourceId: this.properties.dynamicDataSourceId || '',
+        pageEnvironmentProperty: this.properties.pageEnvironmentProperty || '',
+        siteProperty: this.properties.siteProperty || '',
+        userProperty: this.properties.userProperty || '',
+        queryStringProperty: this.properties.queryStringProperty || '',
+        searchProperty: this.properties.searchProperty || '',
         isDarkTheme: this._isDarkTheme,
         environmentMessage: this._environmentMessage,
         hasTeamsContext: !!this.context.sdks.microsoftTeams,
@@ -494,6 +510,97 @@ export default class SpfxBannerSearchWebPart extends BaseClientSideWebPart<ISpfx
                   placeholder: '/sites/hub/images/suggestions.png',
                   disabled: this.properties.enableQuerySuggestions === false || this.properties.suggestionsProvider !== 'custom'
                 })
+              ]
+            }
+          ]
+        },
+        {
+          header: {
+            description: "Configure dynamic data connections and page environment settings"
+          },
+          groups: [
+            {
+              groupName: "Dynamic Data Source",
+              groupFields: [
+                PropertyPaneToggle('useDynamicDataSource', {
+                  label: 'Use dynamic data source',
+                  checked: this.properties.useDynamicDataSource !== false
+                }),
+                PropertyPaneDropdown('dynamicDataSourceId', {
+                  label: 'Connect to source',
+                  options: [
+                    { key: 'pageEnvironment', text: 'Page Environment' }
+                  ],
+                  selectedKey: this.properties.dynamicDataSourceId || 'pageEnvironment',
+                  disabled: !this.properties.useDynamicDataSource
+                }),
+                PropertyPaneDropdown('pageEnvironmentProperty', {
+                  label: 'Page environment\'s properties',
+                  options: [
+                    { key: 'siteProperties', text: 'Site Properties' },
+                    { key: 'currentUser', text: 'Current User Information' },
+                    { key: 'queryString', text: 'Query String' },
+                    { key: 'search', text: 'Search' }
+                  ],
+                  selectedKey: this.properties.pageEnvironmentProperty || '',
+                  disabled: !this.properties.useDynamicDataSource || this.properties.dynamicDataSourceId !== 'pageEnvironment'
+                }),
+                // Site Properties dropdown - only show if site properties is selected
+                ...(this.properties.pageEnvironmentProperty === 'siteProperties' && this.properties.useDynamicDataSource ? [
+                  PropertyPaneDropdown('siteProperty', {
+                    label: 'Site property',
+                    options: [
+                      { key: 'siteUrl', text: 'Site URL' },
+                      { key: 'siteCollectionUrl', text: 'Site Collection URL' },
+                      { key: 'siteTitle', text: 'Site Title' },
+                      { key: 'siteId', text: 'Site ID' },
+                      { key: 'webId', text: 'Web ID' },
+                      { key: 'hubSiteId', text: 'Hub Site ID' }
+                    ],
+                    selectedKey: this.properties.siteProperty || '',
+                    disabled: !this.properties.useDynamicDataSource
+                  })
+                ] : []),
+                // Current User dropdown - only show if current user is selected
+                ...(this.properties.pageEnvironmentProperty === 'currentUser' && this.properties.useDynamicDataSource ? [
+                  PropertyPaneDropdown('userProperty', {
+                    label: 'User property',
+                    options: [
+                      { key: 'loginName', text: 'Login Name' },
+                      { key: 'displayName', text: 'Display Name' },
+                      { key: 'email', text: 'Email' },
+                      { key: 'userId', text: 'User ID' },
+                      { key: 'department', text: 'Department' },
+                      { key: 'jobTitle', text: 'Job Title' }
+                    ],
+                    selectedKey: this.properties.userProperty || '',
+                    disabled: !this.properties.useDynamicDataSource
+                  })
+                ] : []),
+                // Query String dropdown - only show if query string is selected
+                ...(this.properties.pageEnvironmentProperty === 'queryString' && this.properties.useDynamicDataSource ? [
+                  PropertyPaneTextField('queryStringProperty', {
+                    label: 'Query string parameter name',
+                    description: 'Enter the name of the query string parameter to use (e.g., q, search, query)',
+                    value: this.properties.queryStringProperty || '',
+                    placeholder: 'q',
+                    disabled: !this.properties.useDynamicDataSource
+                  })
+                ] : []),
+                // Search dropdown - only show if search is selected
+                ...(this.properties.pageEnvironmentProperty === 'search' && this.properties.useDynamicDataSource ? [
+                  PropertyPaneDropdown('searchProperty', {
+                    label: 'Search property',
+                    options: [
+                      { key: 'searchQuery', text: 'Search Query' },
+                      { key: 'searchResults', text: 'Search Results' },
+                      { key: 'selectedFilters', text: 'Selected Filters' },
+                      { key: 'searchVertical', text: 'Search Vertical' }
+                    ],
+                    selectedKey: this.properties.searchProperty || '',
+                    disabled: !this.properties.useDynamicDataSource
+                  })
+                ] : [])
               ]
             }
           ]

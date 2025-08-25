@@ -31,6 +31,15 @@ export interface ISpfxBannerSearchProps {
   hubSiteId: string;
   imageRelativeUrl: string;
   
+  // Dynamic data source configuration
+  useDynamicDataSource: boolean;
+  dynamicDataSourceId: string;
+  pageEnvironmentProperty: string;
+  siteProperty: string;
+  userProperty: string;
+  queryStringProperty: string;
+  searchProperty: string;
+  
   // SPFx context and theme
   isDarkTheme: boolean;
   environmentMessage: string;

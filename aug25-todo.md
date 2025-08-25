@@ -8,3 +8,5 @@ Custom provider API logic with Hub Site ID filtering implemented, applied.
 API enhanced with fileExtension and SiteTitle properties for better metadata, applied.
 Smart suggestion subtitles with site context (On the site / From site) implemented, applied.
 Search box styling configuration (border radius 0-15px, height 30-50px) on page 1, applied.
+Dynamic data source connections configuration panel (page 4) with PnP Modern Search patterns, applied.
+Dynamic data source reactive behavior (auto-populate search box from user/site/query properties), applied.
