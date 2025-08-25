@@ -451,7 +451,7 @@ const HeroSearchBox: React.FC<{
             width: '100%',
             border: 'none',
             fontSize: '1rem',
-            padding: '0px 10px 3.5px',
+            padding: '0px 10px 1.5px',
             paddingLeft: isInputFocused ? '10px' : '35px',
             borderRadius: `${searchBoxBorderRadius}px`,
             outline: 'none',
@@ -577,22 +577,11 @@ const SpfxBannerSearch: React.FC<ISpfxBannerSearchProps> = (props) => {
     semanticColors,
     onSearchQuery,
     hasTeamsContext,
-    context,
-    extensibilityLibraries
+    context
   } = props;
 
   // Parse extensibility libraries for demo effects
-  const activeExtensibilityLibraries = useMemo(() => {
-    try {
-      if (extensibilityLibraries) {
-        const libraries = JSON.parse(extensibilityLibraries);
-        return libraries.filter((lib: any) => lib.enabled);
-      }
-    } catch (error) {
-      console.warn('Failed to parse extensibility libraries:', error);
-    }
-    return [];
-  }, [extensibilityLibraries]);
+  // Extensibility libraries parsing removed - indicator not needed
 
   // Local state for AI search toggle (defaults to false, users can toggle)
   const [isAISearchActive, setIsAISearchActive] = useState<boolean>(false);
@@ -656,29 +645,7 @@ const SpfxBannerSearch: React.FC<ISpfxBannerSearchProps> = (props) => {
           onToggle={handleAIToggle}
         />
         
-        {/* Extensibility Libraries Indicator */}
-        {activeExtensibilityLibraries.length > 0 && (
-          <div style={{
-            position: 'absolute',
-            top: '15px',
-            left: '20px',
-            background: 'rgba(0, 120, 212, 0.9)',
-            color: 'white',
-            padding: '6px 12px',
-            borderRadius: '12px',
-            fontSize: '12px',
-            fontWeight: '600',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '6px',
-            zIndex: 10,
-            boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
-            fontFamily: 'Segoe UI, sans-serif'
-          }}>
-            <Icon iconName="PlugConnected" style={{ fontSize: '14px' }} />
-            <span>{activeExtensibilityLibraries.length} Extension{activeExtensibilityLibraries.length !== 1 ? 's' : ''}</span>
-          </div>
-        )}
+        {/* Extensibility Libraries Indicator - removed */}
         {/* Main content container */}
         <div className={styles.heroContent}>
           <div className={styles.searchWrapper}>

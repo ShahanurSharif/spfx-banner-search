@@ -75,8 +75,8 @@ const AISearch: React.FC<IAISearchProps> = ({ placeholder, onSearchQuery, enable
       setShowSuggestions(false);
       setQuery(searchQuery);
       
-      // AI placeholder alert
-      alert(`🤖 AI Search Mode!\n\nYou searched: "${searchQuery}"\n\nThis will be enhanced with AI features like:\n• Natural language processing\n• Smart query understanding\n• AI-powered suggestions\n• Contextual search results\n\nStay tuned!`);
+      // AI placeholder - silent mode
+      console.log(`🤖 AI Search Mode: "${searchQuery}" - Features coming soon!`);
       
       // Still trigger the search for now
       onSearchQuery(searchQuery);

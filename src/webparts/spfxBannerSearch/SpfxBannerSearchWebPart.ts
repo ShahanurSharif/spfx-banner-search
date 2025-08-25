@@ -142,7 +142,7 @@ export default class SpfxBannerSearchWebPart extends BaseClientSideWebPart<ISpfx
         userProperty: this.properties.userProperty || '',
         queryStringProperty: this.properties.queryStringProperty || '',
         searchProperty: this.properties.searchProperty || '',
-        extensibilityLibraries: this.properties.extensibilityLibraries || '',
+
         isDarkTheme: this._isDarkTheme,
         environmentMessage: this._environmentMessage,
         hasTeamsContext: !!this.context.sdks.microsoftTeams,
@@ -661,7 +661,7 @@ export default class SpfxBannerSearchWebPart extends BaseClientSideWebPart<ISpfx
         const libraries = self._currentExtensibilityLibraries || self._getExtensibilityLibraries();
         self._saveExtensibilityLibraries(libraries);
         self._currentExtensibilityLibraries = null;
-        alert('Extensibility libraries configuration saved successfully!');
+        // Configuration saved silently
         document.getElementById('extensibility-panel-overlay')?.remove();
       },
       
@@ -942,7 +942,7 @@ export default class SpfxBannerSearchWebPart extends BaseClientSideWebPart<ISpfx
           this.render();
           overlay.remove();
         } catch (error) {
-          alert('Invalid JSON format. Please check your configuration.');
+          console.error('Invalid JSON format in configuration');
         }
       },
       exportSettings: () => {
