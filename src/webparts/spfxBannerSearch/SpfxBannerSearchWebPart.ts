@@ -5,7 +5,8 @@ import {
   type IPropertyPaneConfiguration,
   PropertyPaneTextField,
   PropertyPaneToggle,
-  PropertyPaneSlider
+  PropertyPaneSlider,
+  PropertyPaneDropdown
 } from '@microsoft/sp-property-pane';
 import { BaseClientSideWebPart } from '@microsoft/sp-webpart-base';
 import { IReadonlyTheme } from '@microsoft/sp-component-base';
@@ -31,6 +32,7 @@ export interface ISpfxBannerSearchWebPartProps {
   resultsWebPartId: string;
   enableSuggestions: boolean;
   suggestionsLimit: number;
+  openingBehavior: string;
   
   // Redirect configuration
   redirectToSearchPage: boolean;
@@ -57,6 +59,7 @@ export default class SpfxBannerSearchWebPart extends BaseClientSideWebPart<ISpfx
         queryTemplate: this.properties.queryTemplate || '*',
         enableSuggestions: this.properties.enableSuggestions !== false,
         suggestionsLimit: this.properties.suggestionsLimit || 10,
+        openingBehavior: this.properties.openingBehavior || 'new-tab',
         isDarkTheme: this._isDarkTheme,
         environmentMessage: this._environmentMessage,
         hasTeamsContext: !!this.context.sdks.microsoftTeams,
@@ -317,6 +320,15 @@ export default class SpfxBannerSearchWebPart extends BaseClientSideWebPart<ISpfx
                   step: 1,
                   showValue: true,
                   value: this.properties.suggestionsLimit || 10,
+                  disabled: this.properties.enableSuggestions === false
+                }),
+                PropertyPaneDropdown('openingBehavior', {
+                  label: 'Opening behavior',
+                  options: [
+                    { key: 'current-tab', text: 'Use the current tab' },
+                    { key: 'new-tab', text: 'Open in the new tab' }
+                  ],
+                  selectedKey: this.properties.openingBehavior || 'new-tab',
                   disabled: this.properties.enableSuggestions === false
                 })
               ]

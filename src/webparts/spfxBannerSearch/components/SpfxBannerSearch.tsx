@@ -118,11 +118,12 @@ const HeroSearchBox: React.FC<{
   onSearch: (query: string) => void;
   enableSuggestions: boolean;
   suggestionsLimit: number;
+  openingBehavior: string;
   semanticColors: Partial<import('@fluentui/react/lib/Styling').ISemanticColors>;
   context: WebPartContext;
   searchSiteUrl?: string;
   debugSuggestions?: boolean;
-}> = React.memo(({ placeholder, onSearch, enableSuggestions, suggestionsLimit, semanticColors, context, searchSiteUrl, debugSuggestions }) => {
+}> = React.memo(({ placeholder, onSearch, enableSuggestions, suggestionsLimit, openingBehavior, semanticColors, context, searchSiteUrl, debugSuggestions }) => {
   console.debug("[HeroSearchBox] Component is rendering with props:", { placeholder, enableSuggestions });
   const service = useMemo(() => new SharePointSearchService(context, searchSiteUrl, debugSuggestions), [context, searchSiteUrl, debugSuggestions]);
   
@@ -272,15 +273,20 @@ const HeroSearchBox: React.FC<{
             <div
               key={item.id}
               className={`${styles.suggestionItem} ${index === highlightedIndex ? styles.highlighted : ''}`}
-              onClick={() => { 
-                // If item has a path, open it in new tab, otherwise perform search
+                            onClick={() => { 
+                // If item has a path, open it based on configured behavior, otherwise perform search
                 if (item.path && item.path.trim()) {
-                  window.open(item.path, '_blank', 'noopener,noreferrer');
+                  if (openingBehavior === 'current-tab') {
+                    window.location.href = item.path;
+                  } else {
+                    // Default to new tab ('new-tab')
+                    window.open(item.path, '_blank', 'noopener,noreferrer');
+                  }
                 } else {
                   onChange(item.suggestionTitle); 
                   onSearch(item.suggestionTitle);
                 }
-                setShowSuggestions(false); 
+                setShowSuggestions(false);
                 setSuggestions([]);
               }}
               role="option"
@@ -405,6 +411,7 @@ const SpfxBannerSearch: React.FC<ISpfxBannerSearchProps> = (props) => {
                 onSearch={handleSearch}
                 enableSuggestions={enableSuggestions}
                 suggestionsLimit={props.suggestionsLimit}
+                openingBehavior={props.openingBehavior}
                 semanticColors={semanticColors}
                 context={context}
                 searchSiteUrl={props.searchSiteUrl}
