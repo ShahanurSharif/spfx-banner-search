@@ -11,6 +11,8 @@ export interface ISpfxBannerSearchProps {
   bannerTitleColor: string;
   bannerTitle: string;
   searchBoxPlaceholder: string;
+  searchBoxBorderRadius: number;
+  searchBoxHeight: number;
   
   // Search behavior configuration
   queryTemplate: string;

@@ -27,6 +27,8 @@ export interface ISpfxBannerSearchWebPartProps {
   bannerTitleColor: string;
   bannerTitle: string;
   searchBoxPlaceholder: string;
+  searchBoxBorderRadius: number;
+  searchBoxHeight: number;
   
   // Search behavior configuration
   queryTemplate: string;
@@ -71,6 +73,8 @@ export default class SpfxBannerSearchWebPart extends BaseClientSideWebPart<ISpfx
         bannerTitleColor: this.properties.bannerTitleColor || '#ffffff',
         bannerTitle: this._processDynamicTitle(this.properties.bannerTitle || 'Find What You Need'),
         searchBoxPlaceholder: this.properties.searchBoxPlaceholder || 'Search everything...',
+        searchBoxBorderRadius: this.properties.searchBoxBorderRadius || 4,
+        searchBoxHeight: this.properties.searchBoxHeight || 32,
         queryTemplate: this.properties.queryTemplate || '*',
         enableSuggestions: this.properties.enableSuggestions !== false,
         suggestionsLimit: this.properties.suggestionsLimit || 10,
@@ -332,6 +336,22 @@ export default class SpfxBannerSearchWebPart extends BaseClientSideWebPart<ISpfx
                 PropertyPaneTextField('searchBoxPlaceholder', {
                   label: 'Search Box Placeholder Text',
                   value: this.properties.searchBoxPlaceholder
+                }),
+                PropertyPaneSlider('searchBoxBorderRadius', {
+                  label: 'Search Box Border Radius (px)',
+                  min: 0,
+                  max: 15,
+                  step: 1,
+                  showValue: true,
+                  value: this.properties.searchBoxBorderRadius || 4
+                }),
+                PropertyPaneSlider('searchBoxHeight', {
+                  label: 'Search Box Height (px)',
+                  min: 30,
+                  max: 50,
+                  step: 2,
+                  showValue: true,
+                  value: this.properties.searchBoxHeight || 32
                 })
               ]
             }

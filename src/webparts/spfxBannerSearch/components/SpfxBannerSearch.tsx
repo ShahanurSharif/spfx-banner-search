@@ -126,11 +126,13 @@ const HeroSearchBox: React.FC<{
   suggestionsProvider: string;
   hubSiteId: string;
   imageRelativeUrl: string;
+  searchBoxBorderRadius: number;
+  searchBoxHeight: number;
   semanticColors: Partial<import('@fluentui/react/lib/Styling').ISemanticColors>;
   context: WebPartContext;
   searchSiteUrl?: string;
   debugSuggestions?: boolean;
-}> = React.memo(({ placeholder, onSearch, enableSuggestions, suggestionsLimit, openingBehavior, enableQuerySuggestions, staticSuggestions, enableZeroTermSuggestions, zeroTermSuggestions, suggestionsProvider, hubSiteId, imageRelativeUrl, semanticColors, context, searchSiteUrl, debugSuggestions }) => {
+}> = React.memo(({ placeholder, onSearch, enableSuggestions, suggestionsLimit, openingBehavior, enableQuerySuggestions, staticSuggestions, enableZeroTermSuggestions, zeroTermSuggestions, suggestionsProvider, hubSiteId, imageRelativeUrl, searchBoxBorderRadius, searchBoxHeight, semanticColors, context, searchSiteUrl, debugSuggestions }) => {
   console.debug("[HeroSearchBox] Component is rendering with props:", { placeholder, enableSuggestions });
   const service = useMemo(() => new SharePointSearchService(context, searchSiteUrl, debugSuggestions), [context, searchSiteUrl, debugSuggestions]);
   
@@ -271,8 +273,9 @@ const HeroSearchBox: React.FC<{
           border: 'none',
           fontSize: '1rem',
           padding: '0 20px',
-          borderRadius: '4px',
-          outline: 'none'
+          borderRadius: `${searchBoxBorderRadius}px`,
+          outline: 'none',
+          height: `${searchBoxHeight}px`
         }}
       />
       {searchValue.trim().length > 0 && (
@@ -456,6 +459,8 @@ const SpfxBannerSearch: React.FC<ISpfxBannerSearchProps> = (props) => {
                 suggestionsProvider={props.suggestionsProvider}
                 hubSiteId={props.hubSiteId}
                 imageRelativeUrl={props.imageRelativeUrl}
+                searchBoxBorderRadius={props.searchBoxBorderRadius}
+                searchBoxHeight={props.searchBoxHeight}
                 semanticColors={semanticColors}
                 context={context}
                 searchSiteUrl={props.searchSiteUrl}
