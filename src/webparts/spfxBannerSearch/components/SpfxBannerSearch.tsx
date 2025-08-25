@@ -33,24 +33,114 @@ import styles from './SpfxBannerSearch.module.scss';
 import type { ISpfxBannerSearchProps } from './ISpfxBannerSearchProps';
 // import { SearchBox } from '@fluentui/react/lib/SearchBox'; // Temporarily commented out for testing
 import { ThemeProvider } from '@fluentui/react/lib/Theme';
-import { Icon } from '@fluentui/react/lib/Icon';
+import { Icon } from '@fluentui/react/lib/Icon'; // Still needed for AI toggle button
 // Native SharePoint panels are now handled in the web part class
 
-// Helper function to get file type icon
-const getFileTypeIcon = (fileType: string): string => {
-  const lowerType = fileType?.toLowerCase() || '';
-  switch (lowerType) {
-    case 'pdf': return 'PDF';
-    case 'doc':
-    case 'docx': return 'WordDocument';
-    case 'xls':
-    case 'xlsx': return 'ExcelDocument';
-    case 'ppt':
-    case 'pptx': return 'PowerPointDocument';
-    case 'txt': return 'TextDocument';
-    case 'html':
-    case 'htm': return 'FileHTML';
-    default: return 'Page';
+// Microsoft FluentUI official icon library (same as SharePoint/Office 365)
+const ICON_BASE_URL = 'https://res.cdn.office.net/midgard/versionless/fluentui-resources/1.0.39/assets/item-types/24/';
+
+const getFileTypeIconUrl = (extension: string): string => {
+  const iconDict: { [key: string]: string } = {
+    'eml': 'email.svg',
+    'nws': 'genericfile.svg',
+    'ascx': 'code.svg',
+    'asp': 'code.svg',
+    'aspx': 'spo.svg',
+    'css': 'code.svg',
+    'hta': 'genericfile.svg',
+    'htm': 'html.svg',
+    'html': 'html.svg',
+    'htw': 'genericfile.svg',
+    'htx': 'genericfile.svg',
+    'jhtml': 'genericfile.svg',
+    'stm': 'genericfile.svg',
+    'mht': 'html.svg',
+    'mhtml': 'html.svg',
+    'xlb': 'sysfile.svg',
+    'xlc': 'xlsx.svg',
+    'xls': 'xlsx.svg',
+    'xlsb': 'xlsx.svg',
+    'xlsm': 'xlsx.svg',
+    'xlsx': 'xlsx.svg',
+    'xlt': 'xltx.svg',
+    'one': 'one.svg',
+    'pot': 'potx.svg',
+    'ppa': 'sysfile.svg',
+    'pps': 'ppsx.svg',
+    'ppt': 'pptx.svg',
+    'pptm': 'pptx.svg',
+    'pptx': 'pptx.svg',
+    'pub': 'pub.svg',
+    'doc': 'docx.svg',
+    'docm': 'docx.svg',
+    'docx': 'docx.svg',
+    'dot': 'dotx.svg',
+    'dotx': 'dotx.svg',
+    'xps': 'vector.svg',
+    'odc': 'spreadsheet.svg',
+    'odp': 'presentation.svg',
+    'ods': 'spreadsheet.svg',
+    'odt': 'rtf.svg',
+    'msg': 'email.svg',
+    'pdf': 'pdf.svg',
+    'rtf': 'rtf.svg',
+    'asm': 'code.svg',
+    'bat': 'code.svg',
+    'c': 'code.svg',
+    'cmd': 'code.svg',
+    'cpp': 'code.svg',
+    'csv': 'csv.svg',
+    'cxx': 'code.svg',
+    'def': 'genericfile.svg',
+    'h': 'code.svg',
+    'hpp': 'code.svg',
+    'lnk': 'link.svg',
+    'mpx': 'genericfile.svg',
+    'php': 'code.svg',
+    'trf': 'genericfile.svg',
+    'txt': 'txt.svg',
+    'url': 'link.svg',
+    'tif': 'photo.svg',
+    'tiff': 'photo.svg',
+    'jpg': 'photo.svg',
+    'jpeg': 'photo.svg',
+    'png': 'photo.svg',
+    'gif': 'photo.svg',
+    'bmp': 'photo.svg',
+    'vdw': 'vsdx.svg',
+    'vdx': 'vsdx.svg',
+    'vsd': 'vsdx.svg',
+    'vsdm': 'vsdx.svg',
+    'vsdx': 'vsdx.svg',
+    'vss': 'vssx.svg',
+    'vssm': 'vssx.svg',
+    'vssx': 'vssx.svg',
+    'vst': 'vstx.svg',
+    'vstm': 'vstx.svg',
+    'vsx': 'vstx.svg',
+    'vtx': 'genericfile.svg',
+    'jsp': 'code.svg',
+    'mspx': 'genericfile.svg',
+    'rss': 'code.svg',
+    'xml': 'xml.svg',
+    'zip': 'zip.svg',
+    'rar': 'zip.svg',
+    '7z': 'zip.svg',
+    'mp4': 'video.svg',
+    'avi': 'video.svg',
+    'mov': 'video.svg',
+    'wmv': 'video.svg',
+    'mp3': 'audio.svg',
+    'wav': 'audio.svg',
+    'wma': 'audio.svg'
+  };
+
+  if (extension && extension.trim() !== '') {
+    const lowerExt = extension.toLowerCase();
+    const iconFile = iconDict[lowerExt] || 'genericfile.svg';
+    return `${ICON_BASE_URL}${iconFile}`;
+  } else {
+    return `${ICON_BASE_URL}docset.svg`;
   }
 };
 import AISearch from './AISearch';
@@ -307,13 +397,18 @@ const HeroSearchBox: React.FC<{
     }
   }, [showSuggestions, suggestions, highlightedIndex, searchValue, onSearch, onChange, setShowSuggestions, setSuggestions]);
 
-  // Simple focus handler - let useTypeahead manage the suggestions
+  // State for input focus to control magnifying glass icon
+  const [isInputFocused, setIsInputFocused] = useState<boolean>(false);
+
+  // Handle input focus - hide magnifying glass
   const handleFocus = useCallback((): void => {
+    setIsInputFocused(true);
     // Focus handling is now managed by useTypeahead hook
   }, []);
 
-  // Handle input blur with delay to allow for clicks
-  const handleBlur = useCallback((event: React.FocusEvent) => {
+  // Handle input blur - show magnifying glass again
+  const handleInputBlur = useCallback((event: React.FocusEvent) => {
+    setIsInputFocused(false);
     // Delay hiding suggestions to allow for suggestion clicks
     setTimeout(() => {
       if (event.currentTarget && !event.currentTarget.contains(document.activeElement)) {
@@ -323,37 +418,61 @@ const HeroSearchBox: React.FC<{
     }, 150);
   }, [setShowSuggestions]);
 
+  // Note: handleBlur replaced by handleInputBlur above for better focus management
+
   console.debug("[HeroSearchBox] Rendering SearchBox with value:", searchValue);
   
   return (
     <div className={styles.searchContainer}>
-      {/* Temporary: Using regular input to test if SearchBox is the issue */}
-      <input
-        type="text"
-        placeholder={placeholder}
-        value={searchValue}
-        onChange={(e) => {
-          console.debug("[Input] onChange called with:", e.target.value);
-          onChange(e.target.value || '');
-        }}
-        onKeyDown={handleKeyDown}
-        onFocus={handleFocus}
-        onBlur={handleBlur}
-        className={styles.heroSearchBox}
-        autoComplete="off"
-        aria-expanded={showSuggestions}
-        aria-haspopup="listbox"
-        role="combobox"
-        style={{
-          width: '100%',
-          border: 'none',
-          fontSize: '1rem',
-          padding: '0 20px',
-          borderRadius: `${searchBoxBorderRadius}px`,
-          outline: 'none',
-          height: `${searchBoxHeight}px`
-        }}
-      />
+      {/* Search input with magnifying glass icon */}
+      <div style={{ 
+        position: 'relative', 
+        width: '100%',
+        display: 'flex',
+        alignItems: 'center'
+      }}>
+        <input
+          type="text"
+          placeholder={placeholder}
+          value={searchValue}
+          onChange={(e) => {
+            console.debug("[Input] onChange called with:", e.target.value);
+            onChange(e.target.value || '');
+          }}
+          onKeyDown={handleKeyDown}
+          onFocus={handleFocus}
+          onBlur={handleInputBlur}
+          className={styles.heroSearchBox}
+          autoComplete="off"
+          aria-expanded={showSuggestions}
+          aria-haspopup="listbox"
+          role="combobox"
+          style={{
+            width: '100%',
+            border: 'none',
+            fontSize: '1rem',
+            padding: '0px 10px 3.5px',
+            paddingLeft: isInputFocused ? '10px' : '35px',
+            borderRadius: `${searchBoxBorderRadius}px`,
+            outline: 'none',
+            height: `${searchBoxHeight}px`,
+            transition: 'padding-left 0.3s ease-in-out'
+          }}
+        />
+        <Icon
+          iconName="Search"
+          style={{
+            position: 'absolute',
+            left: '12px',
+            fontSize: '16px',
+            color: '#666',
+            pointerEvents: 'none',
+            opacity: isInputFocused ? 0 : 1,
+            transform: isInputFocused ? 'scale(0.8)' : 'scale(1)',
+            transition: 'opacity 0.3s ease-in-out, transform 0.3s ease-in-out'
+          }}
+        />
+      </div>
       {searchValue.trim().length > 0 && (
         <div
           className={styles.suggestionsDropdown}
@@ -413,9 +532,16 @@ const HeroSearchBox: React.FC<{
                 backgroundColor: index === highlightedIndex ? '#f0f0f0' : 'white'
               }}
             >
-              <Icon
-                iconName={getFileTypeIcon(item.fileType || '')}
+              <img
+                src={getFileTypeIconUrl(item.fileType || '')}
+                alt={`${item.fileType || 'file'} icon`}
                 className={styles.fileIcon}
+                style={{ 
+                  width: '16px', 
+                  height: '16px', 
+                  marginRight: '8px',
+                  flexShrink: 0
+                }}
               />
               <div className={styles.suggestionText} style={{ color: '#333' }}>
                 <div className={styles.suggestionTitle} style={{ fontWeight: 'bold', marginBottom: '4px' }}>

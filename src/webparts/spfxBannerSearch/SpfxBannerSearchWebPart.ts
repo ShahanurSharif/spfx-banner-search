@@ -314,11 +314,11 @@ export default class SpfxBannerSearchWebPart extends BaseClientSideWebPart<ISpfx
         </div>
         <div class="ms-Panel-contentInner">
           <div class="ms-Panel-header">
-            <p class="ms-Panel-headerText" style="font-size: 20px; font-weight: 600; margin: 0; padding: 20px 24px 0 24px;">Extensibility Libraries to Load</p>
+            <p class="ms-Panel-headerText" style="font-size: 20px !important; font-weight: 600 !important; margin: 0 !important; padding: 20px 24px 0 24px !important; color: #323130 !important; font-family: 'Segoe UI', 'Segoe UI Web (West European)', 'Segoe UI', -apple-system, BlinkMacSystemFont, 'Roboto', 'Helvetica Neue', sans-serif !important;">Extensibility Libraries to Load</p>
           </div>
           <div class="ms-Panel-scrollableContent">
             <div class="ms-Panel-content" style="padding: 20px 24px;">
-              <h3 style="font-size: 16px; font-weight: 600; margin-bottom: 16px;">Available Libraries</h3>
+              <h3 style="font-size: 16px !important; font-weight: 600 !important; margin-bottom: 16px !important; color: #323130 !important; font-family: 'Segoe UI', 'Segoe UI Web (West European)', 'Segoe UI', -apple-system, BlinkMacSystemFont, 'Roboto', 'Helvetica Neue', sans-serif !important;">Available Libraries</h3>
               <div style="margin: 16px 0;">
                 <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px; border: 1px solid #edebe9; border-radius: 2px; margin-bottom: 8px; background: #faf9f8;">
                   <div>
@@ -344,11 +344,11 @@ export default class SpfxBannerSearchWebPart extends BaseClientSideWebPart<ISpfx
                 </div>
               </div>
               <div style="margin-top: 24px; border-top: 1px solid #edebe9; padding-top: 16px;">
-                <button type="button" class="ms-Button ms-Button--primary" style="margin-right: 8px;" onclick="alert('Apply clicked - functionality can be implemented here');">
-                  <span class="ms-Button-label">Apply Changes</span>
+                <button type="button" class="ms-Button ms-Button--primary" style="margin-right: 8px; background: #0078d4 !important; border: 1px solid #0078d4 !important; color: white !important; padding: 8px 16px !important; font-size: 14px !important; font-family: 'Segoe UI', 'Segoe UI Web (West European)', 'Segoe UI', -apple-system, BlinkMacSystemFont, 'Roboto', 'Helvetica Neue', sans-serif !important; border-radius: 2px !important; cursor: pointer !important;" onclick="alert('Apply clicked - functionality can be implemented here');">
+                  <span class="ms-Button-label" style="font-weight: 400 !important;">Apply Changes</span>
                 </button>
-                <button type="button" class="ms-Button" onclick="document.getElementById('extensibility-panel-overlay').remove();">
-                  <span class="ms-Button-label">Cancel</span>
+                <button type="button" class="ms-Button" style="background: transparent !important; border: 1px solid #8a8886 !important; color: #323130 !important; padding: 8px 16px !important; font-size: 14px !important; font-family: 'Segoe UI', 'Segoe UI Web (West European)', 'Segoe UI', -apple-system, BlinkMacSystemFont, 'Roboto', 'Helvetica Neue', sans-serif !important; border-radius: 2px !important; cursor: pointer !important;" onclick="document.getElementById('extensibility-panel-overlay').remove();">
+                  <span class="ms-Button-label" style="font-weight: 400 !important;">Cancel</span>
                 </button>
               </div>
             </div>
@@ -400,28 +400,28 @@ export default class SpfxBannerSearchWebPart extends BaseClientSideWebPart<ISpfx
         </div>
         <div class="ms-Panel-contentInner">
           <div class="ms-Panel-header">
-            <p class="ms-Panel-headerText" style="font-size: 20px; font-weight: 600; margin: 0; padding: 20px 24px 0 24px;">Edit Properties - JSON Configuration</p>
+            <p class="ms-Panel-headerText" style="font-size: 20px !important; font-weight: 600 !important; margin: 0 !important; padding: 20px 24px 0 24px !important; color: #323130 !important; font-family: 'Segoe UI', 'Segoe UI Web (West European)', 'Segoe UI', -apple-system, BlinkMacSystemFont, 'Roboto', 'Helvetica Neue', sans-serif !important;">Edit Properties - JSON Configuration</p>
           </div>
           <div class="ms-Panel-scrollableContent">
             <div class="ms-Panel-content" style="padding: 20px 24px;">
-              <p style="margin-bottom: 16px; color: #605e5c; font-size: 14px;">
+              <p style="margin-bottom: 16px !important; color: #605e5c !important; font-size: 14px !important; font-family: 'Segoe UI', 'Segoe UI Web (West European)', 'Segoe UI', -apple-system, BlinkMacSystemFont, 'Roboto', 'Helvetica Neue', sans-serif !important;">
                 Edit the web part configuration in JSON format. You can export current settings, modify them, and import back.
               </p>
               <textarea id="settings-json" 
                 style="width: 100%; height: 400px; font-family: 'Segoe UI Mono', 'Courier New', monospace; font-size: 12px; border: 1px solid #edebe9; padding: 12px; border-radius: 2px; resize: vertical; background: #faf9f8;" 
                 placeholder="JSON configuration will appear here...">${JSON.stringify(currentSettings, null, 2)}</textarea>
               <div style="margin-top: 20px; display: flex; gap: 8px; border-top: 1px solid #edebe9; padding-top: 16px;">
-                <button type="button" class="ms-Button ms-Button--primary" onclick="window.spfxPanelActions.applySettings();">
-                  <span class="ms-Button-label">Apply</span>
+                <button type="button" class="ms-Button ms-Button--primary" style="background: #0078d4 !important; border: 1px solid #0078d4 !important; color: white !important; padding: 8px 16px !important; font-size: 14px !important; font-family: 'Segoe UI', 'Segoe UI Web (West European)', 'Segoe UI', -apple-system, BlinkMacSystemFont, 'Roboto', 'Helvetica Neue', sans-serif !important; border-radius: 2px !important; cursor: pointer !important;" onclick="window.spfxPanelActions.applySettings();">
+                  <span class="ms-Button-label" style="font-weight: 400 !important;">Apply</span>
                 </button>
-                <button type="button" class="ms-Button" onclick="document.getElementById('settings-panel-overlay').remove();">
-                  <span class="ms-Button-label">Cancel</span>
+                <button type="button" class="ms-Button" style="background: transparent !important; border: 1px solid #8a8886 !important; color: #323130 !important; padding: 8px 16px !important; font-size: 14px !important; font-family: 'Segoe UI', 'Segoe UI Web (West European)', 'Segoe UI', -apple-system, BlinkMacSystemFont, 'Roboto', 'Helvetica Neue', sans-serif !important; border-radius: 2px !important; cursor: pointer !important; margin-right: 8px !important;" onclick="document.getElementById('settings-panel-overlay').remove();">
+                  <span class="ms-Button-label" style="font-weight: 400 !important;">Cancel</span>
                 </button>
-                <button type="button" class="ms-Button" onclick="window.spfxPanelActions.exportSettings();">
-                  <span class="ms-Button-label">Export</span>
+                <button type="button" class="ms-Button" style="background: transparent !important; border: 1px solid #8a8886 !important; color: #323130 !important; padding: 8px 16px !important; font-size: 14px !important; font-family: 'Segoe UI', 'Segoe UI Web (West European)', 'Segoe UI', -apple-system, BlinkMacSystemFont, 'Roboto', 'Helvetica Neue', sans-serif !important; border-radius: 2px !important; cursor: pointer !important; margin-right: 8px !important;" onclick="window.spfxPanelActions.exportSettings();">
+                  <span class="ms-Button-label" style="font-weight: 400 !important;">Export</span>
                 </button>
-                <button type="button" class="ms-Button" onclick="window.spfxPanelActions.importSettings();">
-                  <span class="ms-Button-label">Import</span>
+                <button type="button" class="ms-Button" style="background: transparent !important; border: 1px solid #8a8886 !important; color: #323130 !important; padding: 8px 16px !important; font-size: 14px !important; font-family: 'Segoe UI', 'Segoe UI Web (West European)', 'Segoe UI', -apple-system, BlinkMacSystemFont, 'Roboto', 'Helvetica Neue', sans-serif !important; border-radius: 2px !important; cursor: pointer !important;" onclick="window.spfxPanelActions.importSettings();">
+                  <span class="ms-Button-label" style="font-weight: 400 !important;">Import</span>
                 </button>
               </div>
             </div>
