@@ -8,6 +8,7 @@ export interface ISpfxBannerSearchProps {
   showCircleAnimation: boolean;
   minHeight: number;
   titleFontSize: number;
+  bannerTitleColor: string;
   bannerTitle: string;
   searchBoxPlaceholder: string;
   
@@ -16,6 +17,13 @@ export interface ISpfxBannerSearchProps {
   enableSuggestions: boolean;
   suggestionsLimit: number;
   openingBehavior: string;
+  
+  // Query suggestions configuration
+  enableQuerySuggestions: boolean;
+  staticSuggestions: string;
+  enableZeroTermSuggestions: boolean;
+  zeroTermSuggestions: string;
+  suggestionsProvider: string;
   
   // SPFx context and theme
   isDarkTheme: boolean;

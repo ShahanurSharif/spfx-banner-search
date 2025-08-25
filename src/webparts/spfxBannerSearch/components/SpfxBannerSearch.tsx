@@ -56,7 +56,7 @@ import AISearch from './AISearch';
 // ...existing code...
 import { WebPartContext } from '@microsoft/sp-webpart-base';
 
-import { SharePointSearchService } from '../../../services/SharePointSearchService';
+import { SharePointSearchService, SuggestionItem } from '../../../services/SharePointSearchService';
 import { useTypeahead } from '../../../hooks/useTypeahead';
 
 // Animation component for floating circles
@@ -119,21 +119,52 @@ const HeroSearchBox: React.FC<{
   enableSuggestions: boolean;
   suggestionsLimit: number;
   openingBehavior: string;
+  enableQuerySuggestions: boolean;
+  staticSuggestions: string;
+  enableZeroTermSuggestions: boolean;
+  zeroTermSuggestions: string;
+  suggestionsProvider: string;
   semanticColors: Partial<import('@fluentui/react/lib/Styling').ISemanticColors>;
   context: WebPartContext;
   searchSiteUrl?: string;
   debugSuggestions?: boolean;
-}> = React.memo(({ placeholder, onSearch, enableSuggestions, suggestionsLimit, openingBehavior, semanticColors, context, searchSiteUrl, debugSuggestions }) => {
+}> = React.memo(({ placeholder, onSearch, enableSuggestions, suggestionsLimit, openingBehavior, enableQuerySuggestions, staticSuggestions, enableZeroTermSuggestions, zeroTermSuggestions, suggestionsProvider, semanticColors, context, searchSiteUrl, debugSuggestions }) => {
   console.debug("[HeroSearchBox] Component is rendering with props:", { placeholder, enableSuggestions });
   const service = useMemo(() => new SharePointSearchService(context, searchSiteUrl, debugSuggestions), [context, searchSiteUrl, debugSuggestions]);
   
+  // Create zero-term suggestions
+  const zeroTermSuggestionsItems = useMemo(() => {
+    if (!enableQuerySuggestions || !enableZeroTermSuggestions) return [];
+    return service.getZeroTermSuggestions(zeroTermSuggestions);
+  }, [service, enableQuerySuggestions, enableZeroTermSuggestions, zeroTermSuggestions]);
+
   // Create a stable fetchFn to prevent infinite loops
   const fetchFn = useCallback(
-    (term: string, signal?: AbortSignal, limit?: number) => {
-      if (!enableSuggestions) return Promise.resolve([]);
-      return service.fetchSuggestions(term, signal, limit);
+    async (term: string, signal?: AbortSignal, limit?: number): Promise<SuggestionItem[]> => {
+      if (!enableSuggestions && !enableQuerySuggestions) return [];
+      
+      const allSuggestions: SuggestionItem[] = [];
+      
+      // Add file suggestions (existing behavior)
+      if (enableSuggestions && term.trim()) {
+        try {
+          const fileSuggestions = await service.fetchSuggestions(term, signal, limit);
+          allSuggestions.push(...fileSuggestions);
+        } catch (error) {
+          console.warn("[HeroSearchBox] File suggestions failed:", error);
+        }
+      }
+      
+      // Add query suggestions (new feature)
+      if (enableQuerySuggestions && suggestionsProvider === 'static') {
+        const querySuggestions = service.getStaticSuggestions(staticSuggestions, term);
+        allSuggestions.push(...querySuggestions);
+      }
+      
+      // Limit total suggestions
+      return allSuggestions.slice(0, limit || suggestionsLimit);
     },
-    [service, enableSuggestions]
+    [service, enableSuggestions, enableQuerySuggestions, suggestionsProvider, staticSuggestions, suggestionsLimit]
   );
   
   const {
@@ -145,7 +176,7 @@ const HeroSearchBox: React.FC<{
   // error, // not used
     setOpen: setShowSuggestions,
     setSuggestions
-  } = useTypeahead(fetchFn, 250, suggestionsLimit);
+  } = useTypeahead(fetchFn, 250, suggestionsLimit, zeroTermSuggestionsItems);
   
   // Use the open state from useTypeahead hook
   const showSuggestions = suggestionsOpen;
@@ -329,6 +360,7 @@ const SpfxBannerSearch: React.FC<ISpfxBannerSearchProps> = (props) => {
     showCircleAnimation,
     minHeight,
     titleFontSize,
+    bannerTitleColor,
     bannerTitle,
     searchBoxPlaceholder,
     enableSuggestions,
@@ -348,10 +380,11 @@ const SpfxBannerSearch: React.FC<ISpfxBannerSearchProps> = (props) => {
     '--gradient-end': gradientEndColor,
     '--min-height': `${minHeight}px`,
     '--title-font-size': `${titleFontSize}px`,
+    '--title-color': bannerTitleColor,
     '--body-text': semanticColors?.bodyText || (isDarkTheme ? '#ffffff' : '#323130'),
     '--link-color': semanticColors?.link || '#0078d4',
     '--link-hover': semanticColors?.linkHovered || '#106ebe'
-  } as React.CSSProperties), [gradientStartColor, gradientEndColor, minHeight, titleFontSize, semanticColors, isDarkTheme]);
+  } as React.CSSProperties), [gradientStartColor, gradientEndColor, minHeight, titleFontSize, bannerTitleColor, semanticColors, isDarkTheme]);
 
   // Theme provider configuration for Fluent UI components
   const theme = useMemo(() => ({
@@ -412,6 +445,11 @@ const SpfxBannerSearch: React.FC<ISpfxBannerSearchProps> = (props) => {
                 enableSuggestions={enableSuggestions}
                 suggestionsLimit={props.suggestionsLimit}
                 openingBehavior={props.openingBehavior}
+                enableQuerySuggestions={props.enableQuerySuggestions}
+                staticSuggestions={props.staticSuggestions}
+                enableZeroTermSuggestions={props.enableZeroTermSuggestions}
+                zeroTermSuggestions={props.zeroTermSuggestions}
+                suggestionsProvider={props.suggestionsProvider}
                 semanticColors={semanticColors}
                 context={context}
                 searchSiteUrl={props.searchSiteUrl}

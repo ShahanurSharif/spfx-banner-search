@@ -4,7 +4,8 @@ import type { SuggestionItem } from "../services/SharePointSearchService";
 export function useTypeahead(
   fetchFn: (term: string, signal?: AbortSignal, limit?: number) => Promise<SuggestionItem[]>,
   debounceMs = 250,
-  limit = 10
+  limit = 10,
+  zeroTermSuggestions: SuggestionItem[] = []
 ): {
   value: string;
   onChange: (v: string) => void;
@@ -32,9 +33,9 @@ export function useTypeahead(
     console.debug("[useTypeahead] useEffect triggered with value:", value);
     if (tRef.current) clearTimeout(tRef.current);
     if (!value.trim()) {
-      console.debug("[useTypeahead] Empty value, clearing suggestions");
-      setSuggestions([]);
-      setOpen(false);
+      console.debug("[useTypeahead] Empty value, showing zero-term suggestions");
+      setSuggestions(zeroTermSuggestions);
+      setOpen(zeroTermSuggestions.length > 0);
       return;
     }
     console.debug("[useTypeahead] Setting timeout for search with value:", value);
@@ -66,7 +67,7 @@ export function useTypeahead(
       if (tRef.current) clearTimeout(tRef.current);
       if (ctrlRef.current) ctrlRef.current.abort();
     };
-  }, [value, fetchFn, debounceMs, limit]);
+  }, [value, fetchFn, debounceMs, limit, zeroTermSuggestions]);
 
   return { value, onChange, suggestions, open, loading, error, setOpen, setSuggestions };
 }

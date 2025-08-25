@@ -13,6 +13,51 @@ export interface SuggestionItem {
 export class SharePointSearchService {
   constructor(private context: WebPartContext, private siteUrl?: string, private debugSuggestions?: boolean) {}
 
+  /**
+   * Get static query suggestions from configuration
+   */
+  public getStaticSuggestions(staticSuggestions: string, query: string = ''): SuggestionItem[] {
+    if (!staticSuggestions.trim()) return [];
+    
+    const suggestions = staticSuggestions
+      .split(',')
+      .map(s => s.trim())
+      .filter(s => s.length > 0)
+      .filter(s => query === '' || s.toLowerCase().includes(query.toLowerCase()))
+      .slice(0, 10)
+      .map((suggestion, index) => ({
+        id: `static-${index}`,
+        suggestionTitle: suggestion,
+        suggestionSubtitle: 'Suggested search',
+        path: '',
+        fileType: ''
+      } as SuggestionItem));
+
+    return suggestions;
+  }
+
+  /**
+   * Get zero-term suggestions (shown when search box is empty)
+   */
+  public getZeroTermSuggestions(zeroTermSuggestions: string): SuggestionItem[] {
+    if (!zeroTermSuggestions.trim()) return [];
+    
+    const suggestions = zeroTermSuggestions
+      .split(',')
+      .map(s => s.trim())
+      .filter(s => s.length > 0)
+      .slice(0, 5)
+      .map((suggestion, index) => ({
+        id: `zero-term-${index}`,
+        suggestionTitle: suggestion,
+        suggestionSubtitle: 'Popular search',
+        path: '',
+        fileType: ''
+      } as SuggestionItem));
+
+    return suggestions;
+  }
+
   public async fetchSuggestions(term: string, signal?: AbortSignal, limit: number = 10): Promise<SuggestionItem[]> {
     if (!term || !term.trim()) return [];
     const baseUrl = (this.siteUrl || this.context.pageContext.web.absoluteUrl).replace(/\/$/, "");

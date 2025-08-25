@@ -24,6 +24,7 @@ export interface ISpfxBannerSearchWebPartProps {
   showCircleAnimation: boolean;
   minHeight: number;
   titleFontSize: number;
+  bannerTitleColor: string;
   bannerTitle: string;
   searchBoxPlaceholder: string;
   
@@ -34,9 +35,18 @@ export interface ISpfxBannerSearchWebPartProps {
   suggestionsLimit: number;
   openingBehavior: string;
   
+  // Query suggestions configuration
+  enableQuerySuggestions: boolean;
+  staticSuggestions: string;
+  enableZeroTermSuggestions: boolean;
+  zeroTermSuggestions: string;
+  suggestionsProvider: string;
+  
   // Redirect configuration
   redirectToSearchPage: boolean;
   searchPageUrl: string;
+  searchMethod: string;
+  searchParameterName: string;
 }
 
 export default class SpfxBannerSearchWebPart extends BaseClientSideWebPart<ISpfxBannerSearchWebPartProps> {
@@ -54,12 +64,18 @@ export default class SpfxBannerSearchWebPart extends BaseClientSideWebPart<ISpfx
         showCircleAnimation: this.properties.showCircleAnimation !== false,
         minHeight: this.properties.minHeight || 400,
         titleFontSize: this.properties.titleFontSize || 48,
+        bannerTitleColor: this.properties.bannerTitleColor || '#ffffff',
         bannerTitle: this._processDynamicTitle(this.properties.bannerTitle || 'Find What You Need'),
         searchBoxPlaceholder: this.properties.searchBoxPlaceholder || 'Search everything...',
         queryTemplate: this.properties.queryTemplate || '*',
         enableSuggestions: this.properties.enableSuggestions !== false,
         suggestionsLimit: this.properties.suggestionsLimit || 10,
         openingBehavior: this.properties.openingBehavior || 'new-tab',
+        enableQuerySuggestions: this.properties.enableQuerySuggestions !== false,
+        staticSuggestions: this.properties.staticSuggestions || '',
+        enableZeroTermSuggestions: this.properties.enableZeroTermSuggestions !== false,
+        zeroTermSuggestions: this.properties.zeroTermSuggestions || '',
+        suggestionsProvider: this.properties.suggestionsProvider || 'static',
         isDarkTheme: this._isDarkTheme,
         environmentMessage: this._environmentMessage,
         hasTeamsContext: !!this.context.sdks.microsoftTeams,
@@ -120,7 +136,18 @@ export default class SpfxBannerSearchWebPart extends BaseClientSideWebPart<ISpfx
     
     // Option 1: Redirect to search results page
     if (this.properties.redirectToSearchPage && this.properties.searchPageUrl) {
-      const searchUrl = `${this.properties.searchPageUrl}?q=${encodeURIComponent(queryText)}`;
+      const method = this.properties.searchMethod || 'query-string';
+      let searchUrl: string;
+      
+      if (method === 'url-fragment') {
+        // URL fragment: /page#searchterm
+        searchUrl = `${this.properties.searchPageUrl}#${encodeURIComponent(queryText)}`;
+      } else {
+        // Query string parameter: /page?param=searchterm
+        const paramName = this.properties.searchParameterName || 'q';
+        searchUrl = `${this.properties.searchPageUrl}?${paramName}=${encodeURIComponent(queryText)}`;
+      }
+      
       window.location.href = searchUrl;
       return;
     }
@@ -277,6 +304,19 @@ export default class SpfxBannerSearchWebPart extends BaseClientSideWebPart<ISpfx
                   showValue: true,
                   value: this.properties.titleFontSize
                 }),
+                PropertyFieldColorPicker('bannerTitleColor', {
+                  label: 'Banner Title Color',
+                  selectedColor: this.properties.bannerTitleColor,
+                  onPropertyChange: this.onPropertyPaneFieldChanged,
+                  properties: this.properties,
+                  disabled: false,
+                  debounce: 1000,
+                  isHidden: false,
+                  alphaSliderHidden: false,
+                  style: PropertyFieldColorPickerStyle.Full,
+                  iconName: 'Font',
+                  key: 'bannerTitleColorFieldId'
+                }),
                 PropertyPaneTextField('bannerTitle', {
                   label: 'Banner Title',
                   description: 'Title text. Use {email}, {firstname}, {lastname}, {displayname} for dynamic user properties',
@@ -345,6 +385,69 @@ export default class SpfxBannerSearchWebPart extends BaseClientSideWebPart<ISpfx
                   description: 'URL to redirect to when search is submitted (e.g., /sites/search/pages/results.aspx)',
                   value: this.properties.searchPageUrl || '',
                   disabled: !this.properties.redirectToSearchPage
+                }),
+                PropertyPaneDropdown('searchMethod', {
+                  label: 'Method',
+                  options: [
+                    { key: 'query-string', text: 'Query string parameter' },
+                    { key: 'url-fragment', text: 'URL fragment' }
+                  ],
+                  selectedKey: this.properties.searchMethod || 'query-string',
+                  disabled: !this.properties.redirectToSearchPage
+                }),
+                PropertyPaneTextField('searchParameterName', {
+                  label: 'Parameter name',
+                  description: 'URL parameter name for the search query (e.g., q, search, query)',
+                  value: this.properties.searchParameterName || 'q',
+                  placeholder: 'q',
+                  disabled: !this.properties.redirectToSearchPage || this.properties.searchMethod === 'url-fragment'
+                })
+              ]
+            }
+          ]
+        },
+        {
+          header: {
+            description: "Configure query suggestions and search experience"
+          },
+          groups: [
+            {
+              groupName: "Query Suggestions",
+              groupFields: [
+                PropertyPaneToggle('enableQuerySuggestions', {
+                  label: 'Enable Query Suggestions',
+                  checked: this.properties.enableQuerySuggestions !== false
+                }),
+                PropertyPaneDropdown('suggestionsProvider', {
+                  label: 'Suggestions Provider',
+                  options: [
+                    { key: 'static', text: 'SharePoint Static Suggestions' },
+                    { key: 'search', text: 'SharePoint Search Suggestions' },
+                    { key: 'custom', text: 'Custom Provider' }
+                  ],
+                  selectedKey: this.properties.suggestionsProvider || 'static',
+                  disabled: this.properties.enableQuerySuggestions === false
+                }),
+                PropertyPaneTextField('staticSuggestions', {
+                  label: 'Static Suggestions',
+                  description: 'Enter suggestions separated by commas (e.g., "policy, procedure, guidelines")',
+                  value: this.properties.staticSuggestions || '',
+                  multiline: true,
+                  rows: 5,
+                  disabled: this.properties.enableQuerySuggestions === false || this.properties.suggestionsProvider !== 'static'
+                }),
+                PropertyPaneToggle('enableZeroTermSuggestions', {
+                  label: 'Show suggestions when search box is empty',
+                  checked: this.properties.enableZeroTermSuggestions !== false,
+                  disabled: this.properties.enableQuerySuggestions === false
+                }),
+                PropertyPaneTextField('zeroTermSuggestions', {
+                  label: 'Zero-term Suggestions',
+                  description: 'Suggestions to show when search box is empty, separated by commas',
+                  value: this.properties.zeroTermSuggestions || '',
+                  multiline: true,
+                  rows: 3,
+                  disabled: this.properties.enableQuerySuggestions === false || this.properties.enableZeroTermSuggestions === false
                 })
               ]
             }
