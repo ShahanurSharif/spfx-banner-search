@@ -40,6 +40,8 @@ export interface ISpfxBannerSearchProps {
   queryStringProperty: string;
   searchProperty: string;
   
+  // About and settings configuration - panels now handled natively in web part
+  
   // SPFx context and theme
   isDarkTheme: boolean;
   environmentMessage: string;

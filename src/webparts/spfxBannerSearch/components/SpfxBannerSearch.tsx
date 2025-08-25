@@ -34,6 +34,7 @@ import type { ISpfxBannerSearchProps } from './ISpfxBannerSearchProps';
 // import { SearchBox } from '@fluentui/react/lib/SearchBox'; // Temporarily commented out for testing
 import { ThemeProvider } from '@fluentui/react/lib/Theme';
 import { Icon } from '@fluentui/react/lib/Icon';
+// Native SharePoint panels are now handled in the web part class
 
 // Helper function to get file type icon
 const getFileTypeIcon = (fileType: string): string => {
@@ -455,6 +456,8 @@ const SpfxBannerSearch: React.FC<ISpfxBannerSearchProps> = (props) => {
 
   // Local state for AI search toggle (defaults to false, users can toggle)
   const [isAISearchActive, setIsAISearchActive] = useState<boolean>(false);
+  
+  // Panel states removed - now using native SharePoint panels
 
   // Memoized styles for performance
   const bannerStyles = useMemo(() => ({
@@ -484,6 +487,10 @@ const SpfxBannerSearch: React.FC<ISpfxBannerSearchProps> = (props) => {
   const handleAIToggle = useCallback(() => {
     setIsAISearchActive(prev => !prev);
   }, []);
+
+  // Panel handling now done in web part class with native SharePoint panels
+
+  // Panel logic removed - now using native SharePoint panels in web part class
 
   // Optimized search handler
   const handleSearch = useCallback((queryText: string) => {
@@ -556,6 +563,8 @@ const SpfxBannerSearch: React.FC<ISpfxBannerSearchProps> = (props) => {
           Full-width search interface for finding content
         </div>
       </section>
+
+      {/* Panels are now handled as native SharePoint panels in the web part class */}
     </ThemeProvider>
   );
 };

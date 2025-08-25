@@ -6,12 +6,16 @@ import {
   PropertyPaneTextField,
   PropertyPaneToggle,
   PropertyPaneSlider,
-  PropertyPaneDropdown
+  PropertyPaneDropdown,
+  PropertyPaneButton,
+  PropertyPaneButtonType
 } from '@microsoft/sp-property-pane';
 import { BaseClientSideWebPart } from '@microsoft/sp-webpart-base';
 import { IReadonlyTheme } from '@microsoft/sp-component-base';
 import { ISemanticColors } from '@fluentui/react/lib/Styling';
 import { PropertyFieldColorPicker, PropertyFieldColorPickerStyle } from '@pnp/spfx-property-controls/lib/PropertyFieldColorPicker';
+// Import package.json for version information
+const packageInfo = require('../../../package.json');
 
 import * as strings from 'SpfxBannerSearchWebPartStrings';
 import SpfxBannerSearch from './components/SpfxBannerSearch';
@@ -56,6 +60,8 @@ export interface ISpfxBannerSearchWebPartProps {
   userProperty: string;
   queryStringProperty: string;
   searchProperty: string;
+  
+  // About and settings configuration - panels now handled natively
   
   // Redirect configuration
   redirectToSearchPage: boolean;
@@ -271,6 +277,219 @@ export default class SpfxBannerSearchWebPart extends BaseClientSideWebPart<ISpfx
 
   protected get dataVersion(): Version {
     return Version.parse('1.0');
+  }
+
+  // Native SharePoint Panel methods
+  private _showExtensibilityPanel(): void {
+    this._createExtensibilityPanel();
+  }
+
+  private _showSettingsPanel(): void {
+    this._createSettingsPanel();
+  }
+
+  private _createExtensibilityPanel(): void {
+    // Remove existing panel if any
+    this._removePanel('extensibility-panel');
+
+    // Create panel overlay
+    const overlay = document.createElement('div');
+    overlay.id = 'extensibility-panel-overlay';
+    overlay.className = 'ms-Overlay ms-Overlay--dark';
+    overlay.style.cssText = 'position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 1000; background: rgba(0,0,0,0.4);';
+
+    // Create panel
+    const panel = document.createElement('div');
+    panel.id = 'extensibility-panel';
+    panel.className = 'ms-Panel ms-Panel--medium ms-Panel--right';
+    panel.style.cssText = 'position: fixed; top: 0; right: 0; width: 340px; height: 100%; z-index: 1001; background: white; box-shadow: -6px 0 12px rgba(0,0,0,0.15);';
+
+    // Panel content
+    panel.innerHTML = `
+      <div class="ms-Panel-main">
+        <div class="ms-Panel-commands">
+          <button type="button" class="ms-Panel-closeButton ms-PanelAction-close" onclick="document.getElementById('extensibility-panel-overlay').remove();" style="border: none; background: transparent; padding: 8px; cursor: pointer;">
+            <span class="ms-Icon ms-Icon--Cancel" style="font-size: 16px; color: #605e5c;">✕</span>
+          </button>
+        </div>
+        <div class="ms-Panel-contentInner">
+          <div class="ms-Panel-header">
+            <p class="ms-Panel-headerText" style="font-size: 20px; font-weight: 600; margin: 0; padding: 20px 24px 0 24px;">Extensibility Libraries to Load</p>
+          </div>
+          <div class="ms-Panel-scrollableContent">
+            <div class="ms-Panel-content" style="padding: 20px 24px;">
+              <h3 style="font-size: 16px; font-weight: 600; margin-bottom: 16px;">Available Libraries</h3>
+              <div style="margin: 16px 0;">
+                <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px; border: 1px solid #edebe9; border-radius: 2px; margin-bottom: 8px; background: #faf9f8;">
+                  <div>
+                    <strong style="font-size: 14px; color: #323130;">PnP Modern Search Extensibility</strong><br>
+                    <small style="color: #605e5c; font-size: 12px;">Custom result layouts and refiners</small><br>
+                    <code style="font-size: 11px; color: #605e5c; background: #f3f2f1; padding: 2px 4px; border-radius: 2px;">a1b2c3d4-e5f6-7890-abcd-ef1234567890</code>
+                  </div>
+                  <label class="ms-Toggle" style="margin-left: 16px;">
+                    <input type="checkbox" checked />
+                    <span class="ms-Toggle-slider"></span>
+                  </label>
+                </div>
+                <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px; border: 1px solid #edebe9; border-radius: 2px; margin-bottom: 8px; background: #faf9f8;">
+                  <div>
+                    <strong style="font-size: 14px; color: #323130;">Advanced Query Builders</strong><br>
+                    <small style="color: #605e5c; font-size: 12px;">Custom query construction tools</small><br>
+                    <code style="font-size: 11px; color: #605e5c; background: #f3f2f1; padding: 2px 4px; border-radius: 2px;">b2c3d4e5-f6g7-8901-bcde-f23456789012</code>
+                  </div>
+                  <label class="ms-Toggle" style="margin-left: 16px;">
+                    <input type="checkbox" />
+                    <span class="ms-Toggle-slider"></span>
+                  </label>
+                </div>
+              </div>
+              <div style="margin-top: 24px; border-top: 1px solid #edebe9; padding-top: 16px;">
+                <button type="button" class="ms-Button ms-Button--primary" style="margin-right: 8px;" onclick="alert('Apply clicked - functionality can be implemented here');">
+                  <span class="ms-Button-label">Apply Changes</span>
+                </button>
+                <button type="button" class="ms-Button" onclick="document.getElementById('extensibility-panel-overlay').remove();">
+                  <span class="ms-Button-label">Cancel</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    `;
+
+    // Add to DOM
+    overlay.appendChild(panel);
+    document.body.appendChild(overlay);
+
+    // Close on overlay click
+    overlay.addEventListener('click', (e) => {
+      if (e.target === overlay) {
+        overlay.remove();
+      }
+    });
+  }
+
+  private _createSettingsPanel(): void {
+    // Remove existing panel if any
+    this._removePanel('settings-panel');
+
+    // Get current settings
+    const currentSettings = { ...this.properties };
+    delete (currentSettings as any).showExtensibilityPanel;
+    delete (currentSettings as any).showSettingsPanel;
+
+    // Create panel overlay
+    const overlay = document.createElement('div');
+    overlay.id = 'settings-panel-overlay';
+    overlay.className = 'ms-Overlay ms-Overlay--dark';
+    overlay.style.cssText = 'position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 1000; background: rgba(0,0,0,0.4);';
+
+    // Create panel
+    const panel = document.createElement('div');
+    panel.id = 'settings-panel';
+    panel.className = 'ms-Panel ms-Panel--large ms-Panel--right';
+    panel.style.cssText = 'position: fixed; top: 0; right: 0; width: 644px; height: 100%; z-index: 1001; background: white; box-shadow: -6px 0 12px rgba(0,0,0,0.15);';
+
+    // Panel content
+    panel.innerHTML = `
+      <div class="ms-Panel-main">
+        <div class="ms-Panel-commands">
+          <button type="button" class="ms-Panel-closeButton ms-PanelAction-close" onclick="document.getElementById('settings-panel-overlay').remove();" style="border: none; background: transparent; padding: 8px; cursor: pointer;">
+            <span class="ms-Icon ms-Icon--Cancel" style="font-size: 16px; color: #605e5c;">✕</span>
+          </button>
+        </div>
+        <div class="ms-Panel-contentInner">
+          <div class="ms-Panel-header">
+            <p class="ms-Panel-headerText" style="font-size: 20px; font-weight: 600; margin: 0; padding: 20px 24px 0 24px;">Edit Properties - JSON Configuration</p>
+          </div>
+          <div class="ms-Panel-scrollableContent">
+            <div class="ms-Panel-content" style="padding: 20px 24px;">
+              <p style="margin-bottom: 16px; color: #605e5c; font-size: 14px;">
+                Edit the web part configuration in JSON format. You can export current settings, modify them, and import back.
+              </p>
+              <textarea id="settings-json" 
+                style="width: 100%; height: 400px; font-family: 'Segoe UI Mono', 'Courier New', monospace; font-size: 12px; border: 1px solid #edebe9; padding: 12px; border-radius: 2px; resize: vertical; background: #faf9f8;" 
+                placeholder="JSON configuration will appear here...">${JSON.stringify(currentSettings, null, 2)}</textarea>
+              <div style="margin-top: 20px; display: flex; gap: 8px; border-top: 1px solid #edebe9; padding-top: 16px;">
+                <button type="button" class="ms-Button ms-Button--primary" onclick="window.spfxPanelActions.applySettings();">
+                  <span class="ms-Button-label">Apply</span>
+                </button>
+                <button type="button" class="ms-Button" onclick="document.getElementById('settings-panel-overlay').remove();">
+                  <span class="ms-Button-label">Cancel</span>
+                </button>
+                <button type="button" class="ms-Button" onclick="window.spfxPanelActions.exportSettings();">
+                  <span class="ms-Button-label">Export</span>
+                </button>
+                <button type="button" class="ms-Button" onclick="window.spfxPanelActions.importSettings();">
+                  <span class="ms-Button-label">Import</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    `;
+
+    // Add to DOM
+    overlay.appendChild(panel);
+    document.body.appendChild(overlay);
+
+    // Setup global actions
+    (window as any).spfxPanelActions = {
+      applySettings: () => {
+        try {
+          const textarea = document.getElementById('settings-json') as HTMLTextAreaElement;
+          const newSettings = JSON.parse(textarea.value);
+          Object.assign(this.properties, newSettings);
+          this.context.propertyPane.refresh();
+          this.render();
+          overlay.remove();
+        } catch (error) {
+          alert('Invalid JSON format. Please check your configuration.');
+        }
+      },
+      exportSettings: () => {
+        const textarea = document.getElementById('settings-json') as HTMLTextAreaElement;
+        const blob = new Blob([textarea.value], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'spfx-banner-search-settings.json';
+        a.click();
+        URL.revokeObjectURL(url);
+      },
+      importSettings: () => {
+        const input = document.createElement('input');
+        input.type = 'file';
+        input.accept = '.json';
+        input.onchange = (e) => {
+          const file = (e.target as HTMLInputElement).files?.[0];
+          if (file) {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+              const textarea = document.getElementById('settings-json') as HTMLTextAreaElement;
+              textarea.value = e.target?.result as string;
+            };
+            reader.readAsText(file);
+          }
+        };
+        input.click();
+      }
+    };
+
+    // Close on overlay click
+    overlay.addEventListener('click', (e) => {
+      if (e.target === overlay) {
+        overlay.remove();
+      }
+    });
+  }
+
+  private _removePanel(panelId: string): void {
+    const existingOverlay = document.getElementById(`${panelId}-overlay`);
+    if (existingOverlay) {
+      existingOverlay.remove();
+    }
   }
 
   protected getPropertyPaneConfiguration(): IPropertyPaneConfiguration {
@@ -601,6 +820,64 @@ export default class SpfxBannerSearchWebPart extends BaseClientSideWebPart<ISpfx
                     disabled: !this.properties.useDynamicDataSource
                   })
                 ] : [])
+              ]
+            }
+          ]
+        },
+        {
+          header: {
+            description: "About this web part, extensibility resources, and advanced settings"
+          },
+          groups: [
+            {
+              groupName: "About",
+              groupFields: [
+                PropertyPaneTextField('', {
+                  label: 'Author',
+                  value: 'Monarch360',
+                  disabled: true,
+                  description: 'Visit https://www.monarch360.com.au/'
+                }),
+                PropertyPaneTextField('', {
+                  label: 'Developer',
+                  value: 'Shahanur Sharif',
+                  disabled: true
+                }),
+                PropertyPaneTextField('', {
+                  label: 'Version',
+                  value: packageInfo.version || '1.0.0',
+                  disabled: true
+                }),
+                PropertyPaneTextField('', {
+                  label: 'Web Part Instance ID',
+                  value: this.context.instanceId,
+                  disabled: true,
+                  description: 'Unique identifier for this web part instance'
+                })
+              ]
+            },
+            {
+              groupName: "Resources",
+              groupFields: [
+                PropertyPaneButton('showExtensibilityPanel', {
+                  text: 'Extensibility libraries to load',
+                  buttonType: PropertyPaneButtonType.Primary,
+                  onClick: () => {
+                    this._showExtensibilityPanel();
+                  }
+                })
+              ]
+            },
+            {
+              groupName: "Export/Import Settings",
+              groupFields: [
+                PropertyPaneButton('showSettingsPanel', {
+                  text: 'Edit Properties',
+                  buttonType: PropertyPaneButtonType.Normal,
+                  onClick: () => {
+                    this._showSettingsPanel();
+                  }
+                })
               ]
             }
           ]
