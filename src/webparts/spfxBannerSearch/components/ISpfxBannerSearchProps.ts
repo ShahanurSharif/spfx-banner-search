@@ -25,6 +25,10 @@ export interface ISpfxBannerSearchProps {
   zeroTermSuggestions: string;
   suggestionsProvider: string;
   
+  // Custom search suggestions configuration
+  hubSiteId: string;
+  imageRelativeUrl: string;
+  
   // SPFx context and theme
   isDarkTheme: boolean;
   environmentMessage: string;

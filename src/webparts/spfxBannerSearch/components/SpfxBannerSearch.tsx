@@ -124,11 +124,13 @@ const HeroSearchBox: React.FC<{
   enableZeroTermSuggestions: boolean;
   zeroTermSuggestions: string;
   suggestionsProvider: string;
+  hubSiteId: string;
+  imageRelativeUrl: string;
   semanticColors: Partial<import('@fluentui/react/lib/Styling').ISemanticColors>;
   context: WebPartContext;
   searchSiteUrl?: string;
   debugSuggestions?: boolean;
-}> = React.memo(({ placeholder, onSearch, enableSuggestions, suggestionsLimit, openingBehavior, enableQuerySuggestions, staticSuggestions, enableZeroTermSuggestions, zeroTermSuggestions, suggestionsProvider, semanticColors, context, searchSiteUrl, debugSuggestions }) => {
+}> = React.memo(({ placeholder, onSearch, enableSuggestions, suggestionsLimit, openingBehavior, enableQuerySuggestions, staticSuggestions, enableZeroTermSuggestions, zeroTermSuggestions, suggestionsProvider, hubSiteId, imageRelativeUrl, semanticColors, context, searchSiteUrl, debugSuggestions }) => {
   console.debug("[HeroSearchBox] Component is rendering with props:", { placeholder, enableSuggestions });
   const service = useMemo(() => new SharePointSearchService(context, searchSiteUrl, debugSuggestions), [context, searchSiteUrl, debugSuggestions]);
   
@@ -148,7 +150,9 @@ const HeroSearchBox: React.FC<{
       // Add file suggestions (existing behavior)
       if (enableSuggestions && term.trim()) {
         try {
-          const fileSuggestions = await service.fetchSuggestions(term, signal, limit);
+          // Pass hub site ID if using custom provider
+          const hubId = (enableQuerySuggestions && suggestionsProvider === 'custom') ? hubSiteId : undefined;
+          const fileSuggestions = await service.fetchSuggestions(term, signal, limit, hubId);
           allSuggestions.push(...fileSuggestions);
         } catch (error) {
           console.warn("[HeroSearchBox] File suggestions failed:", error);
@@ -164,7 +168,7 @@ const HeroSearchBox: React.FC<{
       // Limit total suggestions
       return allSuggestions.slice(0, limit || suggestionsLimit);
     },
-    [service, enableSuggestions, enableQuerySuggestions, suggestionsProvider, staticSuggestions, suggestionsLimit]
+    [service, enableSuggestions, enableQuerySuggestions, suggestionsProvider, staticSuggestions, suggestionsLimit, hubSiteId]
   );
   
   const {
@@ -450,6 +454,8 @@ const SpfxBannerSearch: React.FC<ISpfxBannerSearchProps> = (props) => {
                 enableZeroTermSuggestions={props.enableZeroTermSuggestions}
                 zeroTermSuggestions={props.zeroTermSuggestions}
                 suggestionsProvider={props.suggestionsProvider}
+                hubSiteId={props.hubSiteId}
+                imageRelativeUrl={props.imageRelativeUrl}
                 semanticColors={semanticColors}
                 context={context}
                 searchSiteUrl={props.searchSiteUrl}

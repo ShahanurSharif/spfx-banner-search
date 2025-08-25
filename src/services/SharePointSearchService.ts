@@ -58,12 +58,20 @@ export class SharePointSearchService {
     return suggestions;
   }
 
-  public async fetchSuggestions(term: string, signal?: AbortSignal, limit: number = 10): Promise<SuggestionItem[]> {
+  public async fetchSuggestions(term: string, signal?: AbortSignal, limit: number = 10, hubSiteId?: string): Promise<SuggestionItem[]> {
     if (!term || !term.trim()) return [];
     const baseUrl = (this.siteUrl || this.context.pageContext.web.absoluteUrl).replace(/\/$/, "");
     
-    // Use SharePoint Query API to get actual file results for typeahead (like the working version)
-    const queryText = encodeURIComponent(`${term.trim()}*`);
+    // Build query text based on hub site configuration
+    let queryText: string;
+    if (hubSiteId && hubSiteId.trim()) {
+      // Custom provider with Hub Site ID - include DepartmentId filter and exclude lists
+      queryText = encodeURIComponent(`${term.trim()}* DepartmentId:{${hubSiteId.trim()}} -contentclass:STS_List_*`);
+    } else {
+      // Standard search without hub filtering
+      queryText = encodeURIComponent(`${term.trim()}*`);
+    }
+    
     const selectProperties = encodeURIComponent("Title,Path,Author,LastModifiedTime,FileType,SiteName,SPWebUrl,HitHighlightedSummary,FileName,Name,FileLeafRef");
     
     // Match the exact format from the working version, using the provided limit

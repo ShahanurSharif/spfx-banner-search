@@ -42,6 +42,10 @@ export interface ISpfxBannerSearchWebPartProps {
   zeroTermSuggestions: string;
   suggestionsProvider: string;
   
+  // Custom search suggestions configuration
+  hubSiteId: string;
+  imageRelativeUrl: string;
+  
   // Redirect configuration
   redirectToSearchPage: boolean;
   searchPageUrl: string;
@@ -76,6 +80,8 @@ export default class SpfxBannerSearchWebPart extends BaseClientSideWebPart<ISpfx
         enableZeroTermSuggestions: this.properties.enableZeroTermSuggestions !== false,
         zeroTermSuggestions: this.properties.zeroTermSuggestions || '',
         suggestionsProvider: this.properties.suggestionsProvider || 'static',
+        hubSiteId: this.properties.hubSiteId || '',
+        imageRelativeUrl: this.properties.imageRelativeUrl || '',
         isDarkTheme: this._isDarkTheme,
         environmentMessage: this._environmentMessage,
         hasTeamsContext: !!this.context.sdks.microsoftTeams,
@@ -448,6 +454,25 @@ export default class SpfxBannerSearchWebPart extends BaseClientSideWebPart<ISpfx
                   multiline: true,
                   rows: 3,
                   disabled: this.properties.enableQuerySuggestions === false || this.properties.enableZeroTermSuggestions === false
+                })
+              ]
+            },
+            {
+              groupName: "Custom Search Suggestions",
+              groupFields: [
+                PropertyPaneTextField('hubSiteId', {
+                  label: 'Hub Site ID',
+                  description: 'Enter the Hub Site ID for custom search suggestions',
+                  value: this.properties.hubSiteId || '',
+                  placeholder: 'e.g., 12345678-1234-1234-1234-123456789012',
+                  disabled: this.properties.enableQuerySuggestions === false || this.properties.suggestionsProvider !== 'custom'
+                }),
+                PropertyPaneTextField('imageRelativeUrl', {
+                  label: 'Image Relative URL',
+                  description: 'Relative URL for suggestion images (e.g., /sites/hub/images/suggestions.png)',
+                  value: this.properties.imageRelativeUrl || '',
+                  placeholder: '/sites/hub/images/suggestions.png',
+                  disabled: this.properties.enableQuerySuggestions === false || this.properties.suggestionsProvider !== 'custom'
                 })
               ]
             }
